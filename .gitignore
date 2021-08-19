@@ -1,3 +1,4 @@
 work
 pubdir
 .nextflow*
+tests/test_data/*fastq.gz
