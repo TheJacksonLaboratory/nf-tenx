@@ -1,0 +1,23 @@
+- libraries: [SC9900001]
+  library_types: [&GEX Gene Expression]
+  sample_name: tinygex
+  tool: cellranger
+  tool_version: 6.0.0
+  fastq_path: &FQP /sc/service/analysis/tmp/nxf/tests/test_data/
+  reference_path: &REF_TINY /sc/service/analysis/tmp/sample_data/tiny_ref/cellranger_tiny_ref/3.0.0
+
+- libraries: [SC9900002, SC9900003]
+  library_types: [*GEX, *GEX]
+  sample_name: tinygex
+  tool: cellranger
+  tool_version: 6.0.0
+  fastq_path: *FQP 
+  reference_path: *REF_TINY
+
+- libraries: [SC9900004]
+  library_types: [&ATAC Chromatin Accessibility]
+  sample_name: tinyatac
+  tool: cellranger-atac
+  tool_version: 2.0.0
+  fastq_path: *FQP 
+  reference_path: &REF_ATAC /sc/service/analysis/tmp/sample_data/atac_tiny_ref/external/atac_testrun_ref/reference
