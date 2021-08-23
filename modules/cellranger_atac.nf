@@ -19,13 +19,14 @@ process run_cellranger_atac_count {
 
     script:
     samples = record.prefixes.join(",")
+    fastqs = record.fastq_paths.join(",")
     cells = record.n_cells ?: 6000
     localmem = Math.round(task.memory.toGiga() * 0.95)
     """
     cellranger-atac count \
       --id=$record.output_id \
       --sample=$samples \
-      --fastqs=$record.fastq_path \
+      --fastqs=$fastqs \
       --reference=$record.reference_path \
       --localcores=$task.cpus \
       --localmem=$localmem

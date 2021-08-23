@@ -4,6 +4,9 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
+include { construct_library_csv_content } from './functions.nf'
+
+
 process run_cellranger_arc_count {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
     memory 1.GB
@@ -19,16 +22,18 @@ process run_cellranger_arc_count {
       tuple val(record), path("${record.tool}/*"), emit: hash_dir
 
     script:
-    samples = record.prefixes.join(",")
-    cells = record.n_cells ?: 6000
     localmem = Math.round(task.memory.toGiga() * 0.95)
+    lib_csv_content = construct_library_csv_content(record)
     """
+    lib_csv_file=${record.output_id}.csv
+    cat <<-EOF > \$lib_csv_file
+$lib_csv_content
+EOF
+
     cellranger-arc count \
       --id=$record.output_id \
-      --sample=$samples \
-      --fastqs=$record.fastq_path \
-      --transcriptome=$record.reference_path \
-      --expect-cells=$cells \
+      --reference=$record.reference_path \
+      --libraries=\$lib_csv_file \
       --localcores=$task.cpus \
       --localmem=$localmem
 
@@ -37,5 +42,6 @@ process run_cellranger_arc_count {
     mv ${record.output_id}/_* ${record.tool}/_files
     mv ${record.output_id}/*.tgz ${record.tool}/
     mv ${record.output_id}/outs/* ${record.tool}/
+    mv \$lib_csv_file ${record.tool}/
     """
 }

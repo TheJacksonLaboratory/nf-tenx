@@ -33,17 +33,20 @@ def load_samplesheet() {
 def collect_fastqs(record) {
   fastqs = []
   prefixes = []
-  for(lib in record.libraries) {
-    file(record.fastq_path).eachFile { 
-      item -> if(item =~ /$lib/) { 
-         fastqs.add(item) 
-         // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
-         prefixes.add((file(item).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1])
+  for(fqp in record.fastq_paths) {
+    for(lib in record.libraries) {
+      file(fqp).eachFile { 
+        item -> if(item =~ /$lib/) { 
+           fastqs.add(item) 
+           // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
+           prefix = (file(item).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1]
+           if (!(prefix in prefixes)) { prefixes.add(prefix) }
+        }
       }
     }
   }
   record["fastqs"] = fastqs
-  record["prefixes"] = prefixes.toSet()
+  record["prefixes"] = prefixes
   
   return(record)
 }
@@ -63,4 +66,19 @@ def count_reads(record) {
 def construct_output_id(record) {
   record["output_id"] = [record.libraries.join("-"), record.sample_name].join("_")
   return(record)
+}
+
+
+def construct_library_csv_content(record) {
+  rows = ["fastqs,sample,library_type"]
+  nlibs = record.libraries.size()
+  nfqps = record.fastq_paths.size()
+  ntypes = record.library_types.size()
+  if ([nlibs, nfqps, ntypes].toSet().size() > 1) {
+    throw new Exception("Currently can't do unequal #libs, #fastq paths, #types")
+  }
+  for (i in 0..<nlibs) {
+    rows << "${record.fastq_paths[i]},${record.prefixes[i]},${record.library_types[i]}"
+  }
+  return(rows.join("\n"))
 }
