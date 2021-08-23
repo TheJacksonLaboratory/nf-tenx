@@ -3,21 +3,29 @@
   sample_name: tinygex
   tool: cellranger
   tool_version: 6.0.0
-  fastq_path: &FQP /sc/service/analysis/tmp/nxf/tests/test_data/
-  reference_path: &REF_TINY /sc/service/analysis/tmp/sample_data/tiny_ref/cellranger_tiny_ref/3.0.0
+  fastq_paths: [&FQP /sc/service/analysis/tmp/nxf/tests/test_data/data]
+  reference_path: &REF_GEX /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger
 
 - libraries: [SC9900002, SC9900003]
   library_types: [*GEX, *GEX]
   sample_name: tinygex
   tool: cellranger
   tool_version: 6.0.0
-  fastq_path: *FQP 
-  reference_path: *REF_TINY
+  fastq_paths: [*FQP, *FQP]
+  reference_path: *REF_GEX
 
 - libraries: [SC9900004]
   library_types: [&ATAC Chromatin Accessibility]
   sample_name: tinyatac
   tool: cellranger-atac
   tool_version: 2.0.0
-  fastq_path: *FQP 
-  reference_path: &REF_ATAC /sc/service/analysis/tmp/sample_data/atac_tiny_ref/external/atac_testrun_ref/reference
+  fastq_paths: [*FQP]
+  reference_path: &REF_ATAC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-atac
+
+- libraries: [SC9900009, SC9900008]
+  library_types: [*GEX, *ATAC]
+  sample_name: tinyarc
+  tool: cellranger-arc
+  tool_version: 2.0.0
+  fastq_paths: [*FQP, *FQP]
+  reference_path: &REF_ATAC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-arc

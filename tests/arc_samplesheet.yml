@@ -1,0 +1,7 @@
+- libraries: [SC9900009, SC9900008]
+  library_types: [&GEX Gene Expression, &ATAC Chromatin Accessibility]
+  sample_name: tinyarc
+  tool: cellranger-arc
+  tool_version: 2.0.0
+  fastq_paths: [&FQP /sc/service/analysis/tmp/nxf/tests/test_data/data, *FQP]
+  reference_path: &REF_ARC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-arc

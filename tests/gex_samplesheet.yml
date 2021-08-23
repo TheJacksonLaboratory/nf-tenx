@@ -1,0 +1,23 @@
+- libraries: [SC9900003]
+  library_types: [&GEX Gene Expression]
+  sample_name: 1l-1s 
+  tool: cellranger
+  tool_version: 6.0.0
+  fastq_paths: [&FQP /sc/service/analysis/tmp/nxf/tests/test_data/data]
+  reference_path: &REF_TINY /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger
+
+#- libraries: [SC9900000]
+#  library_types: [*GEX]
+#  sample_name: SC9900000_GT99-99000_SI-NA-A1
+#  tool: cellranger
+#  tool_version: 6.0.0
+#  fastq_paths: [*FQP]
+#  reference_path: *REF_TINY
+#
+#- libraries: [SC9900001, SC9900002]
+#  library_types: [*GEX, *GEX]
+#  sample_name: [SC9900001_GT99-99000_SI-NA-A1, SC9900002_GT99-99900_SI-NA-A1]
+#  tool: cellranger
+#  tool_version: 6.0.0
+#  fastq_paths: [*FQP, *FQP]
+#  reference_path: *REF_TINY
