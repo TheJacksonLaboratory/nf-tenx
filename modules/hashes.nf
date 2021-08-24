@@ -11,6 +11,7 @@ process compute_fastq_hashes {
     input:
       val record
     output:
+      path '*.fastq.gz'
       path 'hashes_fastq.md5'
 
     script:
