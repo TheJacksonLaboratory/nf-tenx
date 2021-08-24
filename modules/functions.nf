@@ -36,10 +36,10 @@ def collect_fastqs(record) {
   for(fqp in record.fastq_paths) {
     for(lib in record.libraries) {
       file(fqp).eachFile { 
-        item -> if(item =~ /$lib/) { 
-           fastqs.add(item) 
+        fastq -> if(fastq =~ /$lib/) { 
+           if (!(fastq in fastqs)) { fastqs.add(fastq) }
            // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
-           prefix = (file(item).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1]
+           prefix = (file(fastq).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1]
            if (!(prefix in prefixes)) { prefixes.add(prefix) }
         }
       }
