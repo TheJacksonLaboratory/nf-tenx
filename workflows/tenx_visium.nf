@@ -14,7 +14,7 @@ workflow TENX_VISIUM {
     vis_records.view{ record -> "Record: $record.output_id, $record" }
     compute_fastq_hashes(vis_records)
     FASTQC(vis_records)
-    MULTIQC(FASTQC.outs.fastq_results)
+    MULTIQC(FASTQC.out.fastqc_results)
 
     run_spaceranger_count(vis_records)
     compute_processed_hashes(run_spaceranger_count.out.hash_dir)

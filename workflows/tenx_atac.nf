@@ -14,7 +14,7 @@ workflow TENX_ATAC {
     atac_records.view{ record -> "Record: $record.output_id, $record" }
     compute_fastq_hashes(atac_records)
     FASTQC(atac_records)
-    MULTIQC(FASTQC.outs.fastq_results)
+    MULTIQC(FASTQC.out.fastqc_results)
 
     run_cellranger_atac_count(atac_records)
     compute_processed_hashes(run_cellranger_atac_count.out.hash_dir)

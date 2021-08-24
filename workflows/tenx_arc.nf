@@ -14,7 +14,7 @@ workflow TENX_ARC {
     arc_records.view{ record -> "Record: $record.output_id, $record" }
     compute_fastq_hashes(arc_records)
     FASTQC(arc_records)
-    MULTIQC(FASTQC.outs.fastq_results)
+    MULTIQC(FASTQC.out.fastqc_results)
 
     run_cellranger_arc_count(arc_records)
     compute_processed_hashes(run_cellranger_arc_count.out.hash_dir)
