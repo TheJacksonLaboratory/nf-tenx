@@ -42,7 +42,7 @@ process run_cellranger_count {
         mkdir -p ${record.tool}/_files
         mv ${record.output_id}/_* ${record.tool}/_files
         mv ${record.output_id}/*.tgz ${record.tool}/
-        mv ${record.output_id}/SC_RNA_COUNTER_CS/*/*/*/*/*/metrics_summary_json.json ${record.tool}/summary.json
+        find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
         mv ${record.output_id}/outs/* ${record.tool}/
         """
 
@@ -64,7 +64,7 @@ EOF
         mkdir -p ${record.tool}/_files
         mv ${record.output_id}/_* ${record.tool}/_files
         mv ${record.output_id}/*.tgz ${record.tool}/
-        mv ${record.output_id}/SC_RNA_COUNTER_CS/*/*/*/*/*/metrics_summary_json.json ${record.tool}/summary.json
+        find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
         mv ${record.output_id}/outs/* ${record.tool}/
         mv \$lib_csv_file ${record.tool}/
         """
