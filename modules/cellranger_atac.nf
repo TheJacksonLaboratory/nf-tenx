@@ -3,6 +3,7 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 */
+
 process run_cellranger_atac_count {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
     memory 1.GB

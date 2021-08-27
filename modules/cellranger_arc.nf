@@ -41,6 +41,7 @@ EOF
     mkdir -p ${record.tool}/_files
     mv ${record.output_id}/_* ${record.tool}/_files
     mv ${record.output_id}/*.tgz ${record.tool}/
+    find ${record.output_id}/SC_ATAC_GEX_COUNTER_CS -type f -name "summary.json" -exec mv {} ${record.tool}/summary.json \\;
     mv ${record.output_id}/outs/* ${record.tool}/
     mv \$lib_csv_file ${record.tool}/
     """
