@@ -7,6 +7,7 @@ vim: syntax=groovy
 include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hashes.nf'
 include { run_cellranger_count } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
+include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 
 workflow TENX_GEX {
     take: gex_records
@@ -17,5 +18,6 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     run_cellranger_count(gex_records)
-    compute_processed_hashes(run_cellranger_count.out.hash_dir)
+    SEQUENCING_SATURATION(run_cellranger_count.out.cellranger_outputs)
+    compute_processed_hashes(SEQUENCING_SATURATION.out.hash_data)
 }
