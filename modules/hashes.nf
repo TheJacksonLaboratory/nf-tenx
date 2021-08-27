@@ -11,8 +11,8 @@ process compute_fastq_hashes {
     input:
       val record
     output:
-      path '*.fastq.gz'
-      path 'hashes_fastq.md5'
+      path("*.fastq.gz")
+      path('hashes_fastq.md5')
 
     script:
     files = record.fastqs.join(" ")

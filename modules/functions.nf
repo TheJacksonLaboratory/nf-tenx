@@ -7,7 +7,7 @@ import groovy.json.*
 import org.yaml.snakeyaml.Yaml
 
 
-def load_samplesheet() {
+def load_samplesheet(unused_stdin) {
   text = new FileInputStream(new File(params.samplesheet))
   yaml = new Yaml().load(text)
 
@@ -24,6 +24,7 @@ def load_samplesheet() {
       arc: it.tool == "cellranger-arc"
       visium: it.tool == "spaceranger"
       hto: it.tool == "citeseq"
+      vdj: it.tool == "cellranger-vdj"
     }
 
   return(ch)
