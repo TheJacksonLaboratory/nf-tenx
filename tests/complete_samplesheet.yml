@@ -1,16 +1,22 @@
+# Single GEX library
+# Defining useful shorthands with &VAR
 - libraries: [SC9900001]
   library_types: [&GEX Gene Expression]
   sample_name: tinygex
   tool: cellranger
   tool_version: 6.0.0
+  command: count
   fastq_paths: [&FQP /sc/service/analysis/tmp/nxf/tests/test_data/data]
   reference_path: &REF_GEX /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger
 
+# Generating 1 output from multiple libraries
+# Using shorthands defined above with *VAR
 - libraries: [SC9900002, SC9900003]
   library_types: [*GEX, *GEX]
   sample_name: tinygex
   tool: cellranger
   tool_version: 6.0.0
+  command: count
   fastq_paths: [*FQP, *FQP]
   reference_path: *REF_GEX
 
@@ -19,6 +25,7 @@
   sample_name: tinyatac
   tool: cellranger-atac
   tool_version: 2.0.0
+  command: count
   fastq_paths: [*FQP]
   reference_path: &REF_ATAC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-atac
 
@@ -27,5 +34,31 @@
   sample_name: tinyarc
   tool: cellranger-arc
   tool_version: 2.0.0
+  command: count
   fastq_paths: [*FQP, *FQP]
-  reference_path: &REF_ATAC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-arc
+  reference_path: &REF_ARC /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-cellranger-arc
+
+- libraries: [SC9900010]
+  library_types: [Spatial Gene Expression]
+  sample_name: tinyvis
+  tool: spaceranger
+  tool_version: 1.3.0
+  command: count
+  area: A1
+  slide: V19J01-123
+  image: image.jpg
+  fastq_paths: [*FQP]
+  reference_path: &REF_VIS /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-spaceranger
+
+- libraries: [SC9900011]
+  library_types: [FFPE Spatial Gene Expression]
+  sample_name: tinyffpe
+  tool: spaceranger
+  tool_version: 1.3.0
+  command: count
+  area: A1
+  slide: V19J01-123
+  image: image.jpg
+  probe_set: 1.3.0/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv
+  fastq_paths: [*FQP]
+  reference_path: &REF_VIS /sc/service/analysis/tmp/nxf/tests/test_data/refs/ref-spaceranger

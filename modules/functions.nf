@@ -24,12 +24,13 @@ def load_samplesheet(unused_stdin) {
         )
       )}
     .branch{
-      gex: it.tool == "cellranger"
-      atac: it.tool == "cellranger-atac"
       arc: it.tool == "cellranger-arc"
+      atac: it.tool == "cellranger-atac"
+      hto: it.tool == "citeseq-count"
+      gex: (it.tool == "cellranger")  && (it.command == "count") 
+      vdj: (it.tool == "cellranger") && (it.command == "vdj")
+      multi: (it.tool == "cellranger") && (it.command == "multi")
       visium: it.tool == "spaceranger"
-      hto: it.tool == "citeseq"
-      vdj: it.tool == "cellranger-vdj"
     }
 
   return(ch)

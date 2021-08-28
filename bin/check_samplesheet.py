@@ -7,6 +7,7 @@ from pathlib import Path
 
 import yaml
 from yaml import load, dump
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -30,9 +31,29 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
+def _check_minimal_fields(record_id, record, *additional_fields):
+    req_fields = {
+        "libraries",
+        "library_types",
+        "fastq_paths",
+        "tool",
+        "tool_version",
+        "command",
+        "sample_name",
+        "reference_path",
+    } | set(additional_fields)
+
+    missing = req_fields - record.keys()
+    if missing:
+        print_error(f"Record {record_id}: missing required fields: {missing}")
+
+
 def _check_library_types(record_id, record, lib_types):
-    if not all([lt in lib_types for lt in record["library_types"]]):
-        print_error(f"Invalid library types found in record {record_id}", context="Record")
+    lts = [lt in lib_types for lt in record["library_types"]]
+    if not all(lts):
+        print_error(
+            f"Record {record_id}: invalid library types found. Expected {lib_types}",
+        )
 
 
 def _check_n_libs(record_id, record):
@@ -40,7 +61,9 @@ def _check_n_libs(record_id, record):
     nlib_types = len(record["library_types"])
     nfastq_paths = len(record["fastq_paths"])
     if not (nlibs == nlib_types == nfastq_paths):
-        print_error(f"Record {record_id} has inconsistent number of libraries, library_types, and fastq_paths")
+        print_error(
+            f"Record {record_id}: inconsistent number of libraries, library_types, and fastq_paths"
+        )
 
 
 def _check_fastqs_exist(record_id, record):
@@ -49,21 +72,57 @@ def _check_fastqs_exist(record_id, record):
         for fqp in record["fastq_paths"]:
             fqp = Path(fqp)
             if not fqp.exists():
-                print_error(f"Fastq path {fqp} of record {record_id} doesn't exist!")
+                print_error(f"Record {record_id}: fastq path {fqp} doesn't exist!")
             n += len(list(fqp.glob(f"{lib}*")))
     if n < (2 * len(record["libraries"])):
-        print_error((
-            "Can't find sufficient fastqs for libraries "
-            f"{record['libraries']} under {record['fastq_paths']}"
-        ))
+        print_error(
+            (
+                "Record {record_id}: cannot find sufficient fastqs for libraries "
+                f"{record['libraries']} under {record['fastq_paths']}"
+            )
+        )
 
 
-def check_assay(assay_name, assay_tool, allowed_library_types, records):
+def _check_atac_version(record_id, record):
+    if record["tool_version"][:3] in ["1.0", "1.1"]:
+        print_error(
+            (
+                "Record {record_id}: CellRanger-ATAC version < 1.2.0 is not recommended.  Use at least 1.2.0"
+            )
+        )
+
+
+def _check_image_exists(record_id, record):
+    if not Path(record.image).exists():
+        print_error("Record {record_id}: image {record.image} does not exist")
+
+
+def _check_ffpe_probeset(record_id, record):
+    # hack so we can test without nextflow
+    bin_loc = Path(__file__).parent.absolute()
+    assets_loc1 = bin_loc / ".. " / "assets"
+    probe_loc = assets_loc1 / "probe_sets"
+    probe_set = probe_loc / record.probe_set
+    if not probe_set.exists():
+        print_error(
+            "Record {record_id}: cannot find probe_set specified [{record.probe_set}] under {probe_loc}"
+        )
+
+
+def check_assay(
+    assay_name, assay_tool, software_command, allowed_library_types, records, **kwargs
+):
+    custom_funcs = kwargs.get("additional_checks", [])
+    custom_fields = kwargs.get("additional_fields", [])
     for k, record in enumerate(records, start=1):
-        if record['tool'] != assay_tool: continue
+        if (record["tool"] != assay_tool) or (record["command"] != software_command):
+            continue
+        _check_minimal_fields(k, record, *custom_fields)
         _check_library_types(k, record, allowed_library_types)
         _check_n_libs(k, record)
         _check_fastqs_exist(k, record)
+        for func in custom_funcs:
+            func(k, record)
 
 
 def check_samplesheet(samplesheet):
@@ -74,15 +133,55 @@ def check_samplesheet(samplesheet):
             records = load(fin, Loader=Loader)
     except yaml.composer.ComposerError as e:
         print_error(e)
-        
-    check_assay("GEX", "cellranger", ["Gene Expression"], records)
-    check_assay("ATAC", "cellranger-atac", ["Chromatin Accessibility"], records)
-    check_assay("ARC", "cellranger-arc", ["Gene Expression", "Chromatin Accessibility"], records)
-    check_assay("Visium", "spaceranger", ["Spatial Gene Expression"], records)
-    check_assay("Visium-FFPE", "spaceranger", ["Spatial Gene Expression"], records)
-    check_assay("VDJ", "cellranger", ["VDJ Gene Expression"], records)
-    
-     
+
+    check_assay(
+        "GEX",
+        "cellranger",
+        "count",
+        ["Gene Expression", "Antibody Capture", "CRISPR Guide Capture"],
+        records,
+    )
+
+    check_assay(
+        "ATAC",
+        "cellranger-atac",
+        "count",
+        ["Chromatin Accessibility"],
+        records,
+        additional_checks=[_check_atac_version],
+    )
+
+    check_assay(
+        "ARC",
+        "cellranger-arc",
+        "count",
+        ["Gene Expression", "Chromatin Accessibility"],
+        records,
+    )
+
+    check_assay(
+        "Visium",
+        "spaceranger",
+        "count",
+        ["Spatial Gene Expression"],
+        records,
+        additional_checks=[_check_image],
+        additional_fields=["slide", "area", "image"],
+    )
+
+    check_assay(
+        "Visium-FFPE",
+        "spaceranger",
+        "count",
+        ["Spatial Gene Expression"],
+        records,
+        additional_checks=[_check_image, _check_ffpe_probeset],
+        additional_fields=["slide", "area", "image", "probe_set"],
+    )
+
+    check_assay("VDJ", "cellranger", "vdj", ["VDJ Gene Expression"], records)
+
+
 def main():
     args = parse_args()
     check_samplesheet(args.samplesheet)
