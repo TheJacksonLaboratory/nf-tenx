@@ -17,6 +17,9 @@ include { load_samplesheet } from './modules/functions.nf'
 include { CHECK_INPUT } from './modules/preflight.nf'
 
 
+WorkflowMain.initialize(workflow, params, log)
+
+
 workflow {
     CHECK_INPUT(params.samplesheet)
 
