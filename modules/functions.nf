@@ -7,6 +7,11 @@ import groovy.json.*
 import org.yaml.snakeyaml.Yaml
 
 
+def join_map_items(it) {
+  it.collect { /$it.key="$it.value"/ } join " "
+}
+
+
 def load_samplesheet(unused_stdin) {
   text = new FileInputStream(new File(params.samplesheet))
   yaml = new Yaml().load(text)

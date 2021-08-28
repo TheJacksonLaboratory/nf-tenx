@@ -4,7 +4,27 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { construct_library_csv_content } from './functions.nf'
+include { construct_library_csv_content; join_map_items } from './functions.nf'
+
+
+def construct_gex_cli_options(record) {
+    options = [:]
+    options["--id"] = record.output_id
+    options["--transcriptome"] = record.reference_path
+
+    if ( record.tool_version[0].toInteger() < 4 ) {
+        options["--samples"] = record.prefixes.join(",")
+        options["--fastqs"] = record.fastq_paths.join(",")
+    } else {
+        options["--libraries"] = "${record.output_id}.csv"
+    }
+
+    options["--expect-cells"] = record.n_cells ?: 6000
+    options["--include-introns"] = record.is_nuclei ?: false
+
+    println options
+    return(join_map_items(options))
+}
 
 
 process run_cellranger_count {
@@ -22,50 +42,23 @@ process run_cellranger_count {
       tuple val(record), path("${record.tool}/*"), emit: hash_dir
 
     script:
-    samples = record.prefixes.join(",")
-    fastqs = record.fastq_paths.join(",")
-    cells = record.n_cells ?: 6000
+    main_options = construct_gex_cli_options(record)
     lib_csv_content = construct_library_csv_content(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
-    if ( record.tool_version[0].toInteger() < 4 ) 
-        """
-        cellranger count \
-          --id=$record.output_id \
-          --sample=$samples \
-          --fastqs=$fastqs \
-          --transcriptome=$record.reference_path \
-          --expect-cells=$cells \
-          --localcores=$task.cpus \
-          --localmem=$localmem
-
-        # do rearrange here
-        mkdir -p ${record.tool}/_files
-        mv ${record.output_id}/_* ${record.tool}/_files
-        mv ${record.output_id}/*.tgz ${record.tool}/
-        find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
-        mv ${record.output_id}/outs/* ${record.tool}/
-        """
-
-    else
-        """
-        lib_csv_file=${record.output_id}.csv
-        cat <<-EOF > \$lib_csv_file
+    println main_options
+    """
+    lib_csv_file=${record.output_id}.csv
+    cat <<-EOF > \$lib_csv_file
 $lib_csv_content
 EOF
-        cellranger count \
-          --id=$record.output_id \
-          --transcriptome=$record.reference_path \
-          --libraries=\$lib_csv_file \
-          --expect-cells=$cells \
-          --localcores=$task.cpus \
-          --localmem=$localmem
 
-        # do rearrange here
-        mkdir -p ${record.tool}/_files
-        mv ${record.output_id}/_* ${record.tool}/_files
-        mv ${record.output_id}/*.tgz ${record.tool}/
-        find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
-        mv ${record.output_id}/outs/* ${record.tool}/
-        mv \$lib_csv_file ${record.tool}/
-        """
+    cellranger count $main_options --localcores=$task.cpus --localmem=$localmem
+
+    # do rearrange here
+    mkdir -p ${record.tool}/_files
+    mv ${record.output_id}/_* ${record.tool}/_files
+    mv ${record.output_id}/*.tgz ${record.tool}/
+    find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
+    mv ${record.output_id}/outs/* ${record.tool}/
+    """
 }
