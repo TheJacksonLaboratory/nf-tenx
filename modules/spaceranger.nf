@@ -8,8 +8,7 @@ def construct_vis_cli_options(record) {
     options = [:]
     options["--id"] = record.output_id
     options["--transcriptome"] = record.reference_path
-
-    options["--samples"] = record.prefixes.join(",")
+    options["--sample"] = record.prefixes.join(",")
     options["--fastqs"] = record.fastq_paths.join(",")
 
     options["image"] = record.image

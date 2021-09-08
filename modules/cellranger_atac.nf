@@ -11,7 +11,7 @@ def construct_atac_cli_options(record) {
     options = [:]
     options["--id"] = record.output_id
     options["--reference"] = record.reference_path
-    options["--samples"] = record.prefixes.join(",")
+    options["--sample"] = record.prefixes.join(",")
     options["--fastqs"] = record.fastq_paths.join(",")
     options["--description"] = record.sample_name
 
