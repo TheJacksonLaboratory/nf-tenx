@@ -18,11 +18,11 @@ def load_samplesheet(unused_stdin) {
 
   ch = Channel.fromList(yaml)
     .map{
-      it -> count_reads(
+      it -> 
         collect_fastqs(
           construct_output_id(it)
         )
-      )}
+      }
     .branch{
       arc: it.tool == "cellranger-arc"
       atac: it.tool == "cellranger-atac"
