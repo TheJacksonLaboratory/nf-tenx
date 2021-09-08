@@ -143,6 +143,14 @@ def check_samplesheet(samplesheet):
     )
 
     check_assay(
+        "VDJ",
+        "cellranger",
+        "vdj",
+        ["Immune Profiling", "TCR", "BCR", "VDJ"],
+        records,
+    )
+
+    check_assay(
         "ATAC",
         "cellranger-atac",
         "count",
@@ -165,7 +173,7 @@ def check_samplesheet(samplesheet):
         "count",
         ["Spatial Gene Expression"],
         records,
-        additional_checks=[_check_image],
+        additional_checks=[_check_image_exists],
         additional_fields=["slide", "area", "image"],
     )
 
@@ -175,11 +183,9 @@ def check_samplesheet(samplesheet):
         "count",
         ["Spatial Gene Expression"],
         records,
-        additional_checks=[_check_image, _check_ffpe_probeset],
+        additional_checks=[_check_image_exists, _check_ffpe_probeset],
         additional_fields=["slide", "area", "image", "probe_set"],
     )
-
-    check_assay("VDJ", "cellranger", "vdj", ["VDJ Gene Expression"], records)
 
 
 def main():

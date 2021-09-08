@@ -95,14 +95,14 @@ def compute_runtime(record) {
     n_reads = record.n_reads
     frac = n_reads.divide(3e8)
     runtimes_per_300m = [
-        "cellranger-count": 10
-        "cellranger-vdj": 3
-        "cellranger-atac-count": 18
-        "cellranger-arc-count": 20
+        "cellranger-count": 10,
+        "cellranger-vdj": 3,
+        "cellranger-atac-count": 18,
+        "cellranger-arc-count": 20,
         "spaceranger-count": 10
     ]
     key = "${record.tool}-${record.command}"
-    if !(key in runtimes_per_300m) {
+    if (!(key in runtimes_per_300m)) {
         return("24h")
     }
     return((runtimes_per_300m[key] * frac).round(1))
