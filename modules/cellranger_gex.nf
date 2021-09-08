@@ -21,16 +21,14 @@ def construct_gex_cli_options(record) {
 
     options["--expect-cells"] = record.n_cells ?: 6000
     options["--include-introns"] = record.is_nuclei ?: false
+    options["--description"] = record.sample_name
 
-    println options
     return(join_map_items(options))
 }
 
 
 process run_cellranger_count {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
-    memory 1.GB
-    cpus 1
     tag "$record.output_id"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"

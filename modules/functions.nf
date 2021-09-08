@@ -8,7 +8,7 @@ import org.yaml.snakeyaml.Yaml
 
 
 def join_map_items(it) {
-  it.collect { /$it.key="$it.value"/ } join " "
+  it.collect { it.value ? /$it.key="$it.value"/ : /$it.key/ } join " "
 }
 
 
@@ -88,4 +88,22 @@ def construct_library_csv_content(record) {
     rows << "${record.fastq_paths[i]},${record.prefixes[i]},${record.library_types[i]}"
   }
   return(rows.join("\n"))
+}
+
+
+def compute_runtime(record) {
+    n_reads = record.n_reads
+    frac = n_reads.divide(3e8)
+    runtimes_per_300m = [
+        "cellranger-count": 10
+        "cellranger-vdj": 3
+        "cellranger-atac-count": 18
+        "cellranger-arc-count": 20
+        "spaceranger-count": 10
+    ]
+    key = "${record.tool}-${record.command}"
+    if !(key in runtimes_per_300m) {
+        return("24h")
+    }
+    return((runtimes_per_300m[key] * frac).round(1))
 }

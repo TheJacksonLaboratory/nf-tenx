@@ -7,8 +7,7 @@ vim: syntax=groovy
 process SEQUENCING_SATURATION {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/${record.tool}", pattern: "sequencing_saturation.csv", mode: "copy"
-    memory 1.GB
-    cpus 1
+    label "high_mem"
 
     container "library://singlecell/python:3.8"
 

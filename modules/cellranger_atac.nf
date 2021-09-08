@@ -4,10 +4,23 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
+include { construct_library_csv_content; join_map_items } from './functions.nf'
+
+
+def construct_atac_cli_options(record) {
+    options = [:]
+    options["--id"] = record.output_id
+    options["--reference"] = record.reference_path
+    options["--samples"] = record.prefixes.join(",")
+    options["--fastqs"] = record.fastq_paths.join(",")
+    options["--description"] = record.sample_name
+
+    return(join_map_items(options))
+}
+
+
 process run_cellranger_atac_count {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
-    memory 1.GB
-    cpus 1
     tag "$record.output_id"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
@@ -19,18 +32,10 @@ process run_cellranger_atac_count {
       tuple val(record), path("${record.tool}/*"), emit: hash_dir
 
     script:
-    samples = record.prefixes.join(",")
-    fastqs = record.fastq_paths.join(",")
-    cells = record.n_cells ?: 6000
+    main_options = construct_atac_cli_options(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
     """
-    cellranger-atac count \
-      --id=$record.output_id \
-      --sample=$samples \
-      --fastqs=$fastqs \
-      --reference=$record.reference_path \
-      --localcores=$task.cpus \
-      --localmem=$localmem
+    cellranger-atac count $main_options --localcores=$task.cpus --localmem=$localmem
 
     # do rearrange here
     mkdir -p ${record.tool}/_files
