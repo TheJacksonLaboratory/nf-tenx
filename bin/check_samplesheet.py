@@ -40,7 +40,7 @@ def _check_minimal_fields(record_id, record, *additional_fields):
         "tool_version",
         "command",
         "sample_name",
-        "reference_path",
+        #"reference_path",
     } | set(additional_fields)
 
     missing = req_fields - record.keys()
@@ -110,12 +110,12 @@ def _check_ffpe_probeset(record_id, record):
 
 
 def check_assay(
-    assay_name, assay_tool, software_command, allowed_library_types, records, **kwargs
+    assay_name, assay_tool, software_commands, allowed_library_types, records, **kwargs
 ):
     custom_funcs = kwargs.get("additional_checks", [])
     custom_fields = kwargs.get("additional_fields", [])
     for k, record in enumerate(records, start=1):
-        if (record["tool"] != assay_tool) or (record["command"] != software_command):
+        if (record["tool"] != assay_tool) or (record["command"] not in software_commands):
             continue
         _check_minimal_fields(k, record, *custom_fields)
         _check_library_types(k, record, allowed_library_types)
@@ -137,7 +137,7 @@ def check_samplesheet(samplesheet):
     check_assay(
         "GEX",
         "cellranger",
-        "count",
+        ["count", "", None],
         ["Gene Expression", "Antibody Capture", "CRISPR Guide Capture"],
         records,
     )
@@ -145,7 +145,7 @@ def check_samplesheet(samplesheet):
     check_assay(
         "VDJ",
         "cellranger",
-        "vdj",
+        ["vdj"],
         ["Immune Profiling", "TCR", "BCR", "VDJ"],
         records,
     )
@@ -153,7 +153,7 @@ def check_samplesheet(samplesheet):
     check_assay(
         "ATAC",
         "cellranger-atac",
-        "count",
+        ["count", "", None],
         ["Chromatin Accessibility"],
         records,
         additional_checks=[_check_atac_version],
@@ -162,7 +162,7 @@ def check_samplesheet(samplesheet):
     check_assay(
         "ARC",
         "cellranger-arc",
-        "count",
+        ["count", "", None],
         ["Gene Expression", "Chromatin Accessibility"],
         records,
     )
@@ -170,21 +170,20 @@ def check_samplesheet(samplesheet):
     check_assay(
         "Visium",
         "spaceranger",
-        "count",
-        ["Spatial Gene Expression"],
-        records,
-        additional_checks=[_check_image_exists],
-        additional_fields=["slide", "area", "image"],
-    )
-
-    check_assay(
-        "Visium-FFPE",
-        "spaceranger",
-        "count",
+        ["count", "", None],
         ["Spatial Gene Expression"],
         records,
         additional_checks=[_check_image_exists, _check_ffpe_probeset],
         additional_fields=["slide", "area", "image", "probe_set"],
+    )
+
+    check_assay(
+        "CITE-SEQ",
+        "citeseq_count",
+        ["", None],
+        ["TotalSeq-A", "TotalSeq-B", "TotalSeq-C", "CMO", "LMO"],
+        records,
+        additional_fields=["tags"],
     )
 
 
