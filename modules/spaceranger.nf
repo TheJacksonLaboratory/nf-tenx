@@ -25,7 +25,7 @@ def construct_vis_cli_options(record) {
 
 
 process run_spaceranger_count {
-    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
@@ -33,8 +33,8 @@ process run_spaceranger_count {
     input:
       val record
     output:
-      tuple val(record), path("${record.tool}/*"), emit: spaceranger_outputs
-      tuple val(record), path("${record.tool}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: spaceranger_outputs
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
 
     script:
     main_options = construct_vis_cli_options(record)
@@ -42,11 +42,11 @@ process run_spaceranger_count {
     """
     spaceranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
-    mkdir -p ${record.tool}/_files
-    mv ${record.output_id}/_* ${record.tool}/_files
-    mv ${record.output_id}/*.tgz ${record.tool}/
-    mv ${record.output_id}/outs/* ${record.tool}/
-    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool}/summary.json \\;
-    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool}/spatial/alignment_summary.json \\;
+    mkdir -p ${record.tool_pubdir}/_files
+    mv ${record.output_id}/_* ${record.tool_pubdir}/_files
+    mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
+    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
+    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
+    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool_pubdir}/spatial/alignment_summary.json \\;
     """
 }

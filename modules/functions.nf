@@ -19,8 +19,10 @@ def load_samplesheet(unused_stdin) {
   ch = Channel.fromList(yaml)
     .map{
       it -> 
-        collect_fastqs(
-          construct_output_id(it)
+        count_reads_approx(
+          collect_fastqs(
+            construct_tool_pubdir(construct_output_id(it))
+          )
         )
       }
     .branch{
@@ -70,8 +72,35 @@ def count_reads(record) {
 }
 
 
+def count_reads_approx(record) {
+  // I1 reads are between 8-10bp long (depending on single/dual index and gex vs atac)
+  // On average, I've computed each 10bp fastq record to be ~9B compressed (at
+  // whatever GT's standard compression level is, hard/impossible to tell)
+  // Anyway, at 9B/read, we should have a conservative estimate
+  // Idea from: https://gitter.im/nextflow-io/nextflow?at=6139658f5739ab2df8e209d1
+  lines = 0
+  record.fastqs.each {
+    it -> if(it =~ /_I1_/) {
+      lines += file(it).size()
+    }
+  }
+  record["n_reads"] = lines.intdiv(9)
+  return(record)
+}
+
+
 def construct_output_id(record) {
   record["output_id"] = [record.libraries.join("-"), record.sample_name].join("_")
+  return(record)
+}
+
+
+def construct_tool_pubdir(record) {
+  pubdir = record.tool
+  if (record.command && record.command != "count") {
+    pubdir += "-${record.command}"
+  }
+  record["tool_pubdir"] = pubdir
   return(record)
 }
 

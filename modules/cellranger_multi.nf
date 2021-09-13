@@ -5,7 +5,7 @@ vim: syntax=groovy
 */
 
 process run_cellranger_multi {
-    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     memory 1.GB
     cpus 1
     tag "$record.output_id"
@@ -15,8 +15,8 @@ process run_cellranger_multi {
     input:
       val record
     output:
-      tuple val(record), path("${record.tool}/*"), emit: cellranger_outputs
-      tuple val(record), path("${record.tool}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_outputs
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
 
     script:
     samples = record.prefixes.join(",")

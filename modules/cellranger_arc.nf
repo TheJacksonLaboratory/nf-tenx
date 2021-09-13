@@ -18,16 +18,21 @@ def construct_arc_cli_options(record) {
 
 
 process run_cellranger_arc_count {
-    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool}/*", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
+
+    // cpus determined by profile
+    // memory determined by profile
+    // n_reads here counts both ATAC + GEX, so scale down the factor here.
+    time { (record.n_reads / 300000000).round(2) * 6.hour * params.time_scale_factor }
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 
     input:
       val record
     output:
-      tuple val(record), path("${record.tool}/*"), emit: cellranger_arc_outputs
-      tuple val(record), path("${record.tool}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_arc_outputs
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
 
     script:
     main_options = construct_arc_cli_options(record)
@@ -35,19 +40,17 @@ process run_cellranger_arc_count {
     localmem = Math.round(task.memory.toGiga() * 0.95)
     """
     lib_csv_file=${record.output_id}.csv
-    cat <<-EOF > \$lib_csv_file
-$lib_csv_content
-EOF
+    echo -e '$lib_csv_content' > \$lib_csv_file
 
     cellranger-arc count $main_options --localcores=$task.cpus --localmem=$localmem
 
     # do rearrange here
-    mkdir -p ${record.tool}/_files
-    mv \$lib_csv_file ${record.tool}/
-    mv ${record.output_id}/_* ${record.tool}/_files
-    mv ${record.output_id}/*.tgz ${record.tool}/
-    mv ${record.output_id}/outs/* ${record.tool}/
-    find ${record.output_id}/SC_ATAC_GEX_COUNTER_CS -type f -name "summary.json" -exec mv {} ${record.tool}/summary_atac.json \\;
-    find ${record.output_id}/SC_ATAC_GEX_COUNTER_CS -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool}/summary_gex.json \\;
+    mkdir -p ${record.tool_pubdir}/_files
+    mv \$lib_csv_file ${record.tool_pubdir}/
+    mv ${record.output_id}/_* ${record.tool_pubdir}/_files
+    mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
+    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
+    find ${record.output_id}/SC_ATAC_GEX_COUNTER_CS -type f -name "summary.json" -exec mv {} ${record.tool_pubdir}/summary_atac.json \\;
+    find ${record.output_id}/SC_ATAC_GEX_COUNTER_CS -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary_gex.json \\;
     """
 }

@@ -9,6 +9,8 @@ process FASTQC {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq/qc", pattern: "*", mode: "copy"
 
+    time 4.hour
+
     container "library://singlecell/fastqc:0.11.9"
 
     input:
@@ -28,6 +30,8 @@ process FASTQC {
 process MULTIQC {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq/qc", pattern: "*", mode: "move"
+
+    time 4.hour
 
     container "library://singlecell/multiqc:1.11"
 

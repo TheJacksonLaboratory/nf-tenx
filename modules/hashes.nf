@@ -24,7 +24,7 @@ process compute_fastq_hashes {
 
 process compute_processed_hashes {
     tag "$record.output_id"
-    publishDir "${params.pubdir}/${record.output_id}/${record.tool}", pattern: "*", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}/${record.tool_pubdir}", pattern: "*", mode: "copy"
 
     input:
       tuple val(record), path(hash_dir)
