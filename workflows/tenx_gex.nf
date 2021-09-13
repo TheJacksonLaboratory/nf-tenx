@@ -8,13 +8,11 @@ include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hash
 include { run_cellranger_count } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
-include { COUNT_READS } from '../modules/count_reads.nf'
 
 workflow TENX_GEX {
     take: gex_records
     main:
-    gex_records.view{ record -> "Record: $record.output_id, $record" }
-    gex_records = COUNT_READS(gex_records)
+    gex_records.view{ record -> "GEX Record: $record.output_id, $record" }
     compute_fastq_hashes(gex_records)
     FASTQC(gex_records)
     MULTIQC(FASTQC.out.fastqc_results)

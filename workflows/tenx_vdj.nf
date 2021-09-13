@@ -5,7 +5,7 @@ vim: syntax=groovy
 */
 
 include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hashes.nf'
-include { run_cellranger_vdj_count } from '../modules/cellranger_vdj.nf'
+include { run_cellranger_vdj } from '../modules/cellranger_vdj.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 
@@ -17,7 +17,6 @@ workflow TENX_VDJ {
     FASTQC(vdj_records)
     MULTIQC(FASTQC.out.fastqc_results)
 
-    run_cellranger_vdj_count(vdj_records)
-    SEQUENCING_SATURATION(run_cellranger_vdj_count.out.cellranger_vdj_outputs)
-    compute_processed_hashes(SEQUENCING_SATURATION.out.hash_data)
+    run_cellranger_vdj(vdj_records)
+    compute_processed_hashes(run_cellranger_vdj.out.hash_dir)
 }
