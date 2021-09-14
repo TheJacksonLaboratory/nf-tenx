@@ -28,7 +28,7 @@ def load_samplesheet(unused_stdin) {
     .branch{
       arc: it.tool == "cellranger-arc"
       atac: it.tool == "cellranger-atac"
-      hto: it.tool == "citeseq-count"
+      citeseq: it.tool == "citeseq-count"
       gex: (it.tool == "cellranger")  && (it.command == "count") 
       vdj: (it.tool == "cellranger") && (it.command == "vdj")
       multi: (it.tool == "cellranger") && (it.command == "multi")

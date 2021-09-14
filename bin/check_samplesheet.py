@@ -179,7 +179,7 @@ def check_samplesheet(samplesheet):
 
     check_assay(
         "CITE-SEQ",
-        "citeseq_count",
+        "citeseq-count",
         ["", None],
         ["TotalSeq-A", "TotalSeq-B", "TotalSeq-C", "CMO", "LMO"],
         records,

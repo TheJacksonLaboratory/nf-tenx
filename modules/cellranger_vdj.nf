@@ -26,24 +26,24 @@ process run_cellranger_vdj {
     time { (record.n_reads / 300000000).round(2) * 4.hour * params.time_scale_factor }
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
-
+ 
     input:
-      val record
+      val(record)
     output:
-      tuple val(record), path("${record.tool}-${record.command_pubdir}/*"), emit: cellranger_vdj_outputs
-      tuple val(record), path("${record.tool}-${record.command_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_vdj_outputs
+      tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
 
     script:
     main_options = construct_vdj_cli_options(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
     """
-    cellranger vdj $main_options --localcores=$task.cpus --localmem=$localmem
-    
-    # Do rearrange here
-    mkdir -p ${record.tool_pubdir}/_files
-    mv ${record.output_id}/_* ${record.tool_pubdir}/_files
-    mv ${record.output_id}/*.tgz ${record.tool_pubdir{record.command}/ 
-    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
-    find ${record.output_id}/SC_VDJ_ASSEMBLER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
+    #cellranger vdj $main_options --localcores=$task.cpus --localmem=$localmem
+    #
+    ## Do rearrange here
+    #mkdir -p ${record.tool_pubdir}/_files
+    #mv ${record.output_id}/_* ${record.tool_pubdir}/_files
+    #mv ${record.output_id}/*.tgz ${record.tool_pubdir}/ 
+    #mv ${record.output_id}/outs/* ${record.tool_pubdir}/
+    #find ${record.output_id}/SC_VDJ_ASSEMBLER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     """
 }
