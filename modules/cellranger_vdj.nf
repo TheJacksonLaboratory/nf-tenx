@@ -38,13 +38,13 @@ process run_cellranger_vdj {
     main_options = construct_vdj_cli_options(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
     """
-    #cellranger vdj $main_options --localcores=$task.cpus --localmem=$localmem
-    #
-    ## Do rearrange here
-    #mkdir -p ${record.tool_pubdir}/_files
-    #mv ${record.output_id}/_* ${record.tool_pubdir}/_files
-    #mv ${record.output_id}/*.tgz ${record.tool_pubdir}/ 
-    #mv ${record.output_id}/outs/* ${record.tool_pubdir}/
-    #find ${record.output_id}/SC_VDJ_ASSEMBLER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
+    cellranger vdj $main_options --localcores=$task.cpus --localmem=$localmem
+    
+    # Do rearrange here
+    mkdir -p ${record.tool_pubdir}/_files
+    mv ${record.output_id}/_* ${record.tool_pubdir}/_files
+    mv ${record.output_id}/*.tgz ${record.tool_pubdir}/ 
+    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
+    find ${record.output_id}/SC_VDJ_ASSEMBLER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     """
 }
