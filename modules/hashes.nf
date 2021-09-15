@@ -4,15 +4,17 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
+
 process compute_fastq_hashes {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*", mode: "copy"
 
     input:
-      val record
+      val(record)
     output:
       path("*.fastq.gz")
       path('hashes_fastq.md5')
+      tuple val(record), path("*.md5"), emit: input_hashes
 
     script:
     files = record.fastqs.join(" ")
@@ -30,6 +32,7 @@ process compute_processed_hashes {
       tuple val(record), path(hash_dir)
     output:
       path 'hashes_processed.md5'
+      tuple val(record), path("*.md5"), emit: output_hashes
 
     script:
     """

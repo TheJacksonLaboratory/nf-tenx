@@ -20,16 +20,16 @@ def load_samplesheet(unused_stdin) {
     .map{
       it -> 
         count_reads_approx(
-          collect_fastqs(
+          parse_gt_ids(collect_fastqs(
             construct_tool_pubdir(construct_output_id(it))
-          )
+          ))
         )
       }
     .branch{
       arc: it.tool == "cellranger-arc"
       atac: it.tool == "cellranger-atac"
       citeseq: it.tool == "citeseq-count"
-      gex: (it.tool == "cellranger")  && (it.command == "count") 
+      gex: (it.tool == "cellranger") && (it.command in ["count", null]) 
       vdj: (it.tool == "cellranger") && (it.command == "vdj")
       multi: (it.tool == "cellranger") && (it.command == "multi")
       visium: it.tool == "spaceranger"
@@ -46,7 +46,7 @@ def collect_fastqs(record) {
     for(lib in record.libraries) {
       file(fqp).eachFile { 
         fastq -> if(fastq =~ /$lib/) { 
-           if (!(fastq in fastqs)) { fastqs.add(fastq) }
+           if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
            // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
            prefix = (file(fastq).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1]
            if (!(prefix in prefixes)) { prefixes.add(prefix) }
@@ -92,6 +92,20 @@ def count_reads_approx(record) {
 def construct_output_id(record) {
   record["output_id"] = [record.libraries.join("-"), record.sample_name].join("_")
   return(record)
+}
+
+
+def parse_gt_ids(record) {
+  gt_ids = []
+  def pattern = ~/GT\d{2}[-_]\d{5}/
+  record.fastqs.each { it ->
+    def match = it =~ pattern
+    if(match) {
+      gt_ids += match[0..-1]
+    }
+  }
+  record["GT_IDs"] = gt_ids.toSet().toList()
+  return (record)
 }
 
 

@@ -62,6 +62,7 @@ process run_citeseq_count {
       val record
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*{report}*", glob: true), emit: metrics
 
     script:
     def (tag_file_content, trim_offset) = create_tag_reference(record)

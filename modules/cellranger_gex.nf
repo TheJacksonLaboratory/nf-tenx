@@ -42,12 +42,12 @@ process run_cellranger_count {
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_outputs
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*{metrics,summary}*", glob: true), emit: metrics
 
     script:
     main_options = construct_gex_cli_options(record)
     lib_csv_content = construct_library_csv_content(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
-    println main_options
     """
     lib_csv_file=${record.output_id}.csv
     echo -e '$lib_csv_content' > \$lib_csv_file

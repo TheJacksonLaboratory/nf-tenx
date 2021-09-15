@@ -32,6 +32,7 @@ process run_cellranger_vdj {
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_vdj_outputs
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*{metrics,summary}*", glob: true), emit: metrics
 
     script:
     main_options = construct_vdj_cli_options(record)

@@ -8,6 +8,8 @@ include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hash
 include { run_cellranger_count } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
+include { DUMP_METADATA } from '../modules/metadata.nf'
+
 
 workflow TENX_GEX {
     take: gex_records
@@ -20,4 +22,10 @@ workflow TENX_GEX {
     run_cellranger_count(gex_records)
     SEQUENCING_SATURATION(run_cellranger_count.out.cellranger_outputs)
     compute_processed_hashes(SEQUENCING_SATURATION.out.hash_data)
+
+    metadata_input = compute_fastq_hashes.out.input_hashes
+        .join(compute_processed_hashes.out.output_hashes, remainder:true)
+        .join(run_cellranger_count.out.metrics, remainder:true)
+    metadata_input.view()
+    DUMP_METADATA(metadata_input)
 }

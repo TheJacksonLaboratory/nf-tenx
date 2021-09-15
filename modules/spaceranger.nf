@@ -35,6 +35,7 @@ process run_spaceranger_count {
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: spaceranger_outputs
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*{metrics,summary}*", glob: true), emit: metrics
 
     script:
     main_options = construct_vis_cli_options(record)
