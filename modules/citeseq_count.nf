@@ -56,7 +56,7 @@ process run_citeseq_count {
 
     // cpus determined by profile
     // memory determined by profile
-    //time { (record.n_reads / 300000000).round(2) * 8.hour * params.time_scale_factor }
+    time { (record.n_reads / 100000000).round(2) * 8.hour * params.time_scale_factor }
 
     input:
       val record

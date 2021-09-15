@@ -3,14 +3,12 @@
 Nextflow DSL2 tool to collect and generate metadata for a sample processed with this
 pipeline.
 
-NEED TO CHANGE THIS FROM TEMPLATE TO SCRIPT
 """
 import re
 import csv
 import json
 import argparse
 import datetime
-import requests
 from pathlib import Path
 
 import yaml
@@ -98,11 +96,6 @@ def create_metadata(args):
         zip(("filename", "checksum"), line.strip().split()[::-1])
     )
 
-    ### GOOD UP TO HERE
-    ## NEED HASHES AS INPUT
-    ## NEED A WAY TO PARSE METRICS
-
-
     metadata["input_checksums"] = []
     for p in args.input_checksums:
         with open(p, "r") as fin:
@@ -119,6 +112,7 @@ def create_metadata(args):
 
     metadata["metrics"] = []
     for metrics_path in set(args.metrics):
+        if not metrics_path.exists(): continue
         if metrics_path.suffix == ".json":
             print("reading json")
             with open(metrics_path, "r") as fin:
