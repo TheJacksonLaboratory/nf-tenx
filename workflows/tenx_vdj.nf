@@ -23,6 +23,6 @@ workflow TENX_VDJ {
 
     metadata_input = compute_fastq_hashes.out.input_hashes
         .join(compute_processed_hashes.out.output_hashes, remainder:true)
-        .join(run_cellranger_vdj_count.out.metrics, remainder:true)
+        .join(run_cellranger_vdj.out.metrics, remainder:true)
     DUMP_METADATA(metadata_input)
 }
