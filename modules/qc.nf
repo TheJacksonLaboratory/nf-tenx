@@ -9,7 +9,9 @@ process FASTQC {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq/qc", pattern: "*", mode: "copy"
 
-    time 4.hour
+    time { (record.n_reads / 300000000).round(2) * 4.hour * params.time_scale_factor }
+    cpus 16
+    memory '5 GB'
 
     container "library://singlecell/fastqc:0.11.9"
 
@@ -22,7 +24,7 @@ process FASTQC {
     script:
     files = record.fastqs.join(" ")
     """
-    fastqc -o . $files
+    fastqc --threads $task.cpus --quiet --outdir . $files
     """
 }
 
