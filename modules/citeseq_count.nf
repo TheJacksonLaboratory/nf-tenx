@@ -72,6 +72,7 @@ process run_citeseq_count {
     mkdir -p ${record.tool_pubdir}
 
     CITE-seq-Count $main_options -trim=$trim_offset -T=$task.cpus
+    echo -e 'CITE-seq-Count $main_options -trim=$trim_offset -T=$task.cpus' > ${record.tool_pubdir}/run_command
 
     mv ${record.output_id}_tags.csv ${record.tool_pubdir}/
     """
