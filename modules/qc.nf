@@ -31,7 +31,7 @@ process FASTQC {
 
 process MULTIQC {
     tag "$record.output_id"
-    publishDir "${params.pubdir}/${record.output_id}/fastq/qc", pattern: "*", mode: "move"
+    publishDir "${params.pubdir}/${record.output_id}/fastq/qc", pattern: "*", mode: "copy"
 
     time 4.hour
 

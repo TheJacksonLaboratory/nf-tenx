@@ -125,7 +125,8 @@ def create_metadata(args):
             print("reading yaml")
             try:
                 with open(metrics_path, "r") as fin:
-                    mets = load(fin, Loader=Loader)
+                    content = fin.read().replace("\t", "  ")
+                    mets = load(content, Loader=Loader)
             except yaml.composer.ComposerError as e:
                 print_error(e)
         else:
@@ -135,7 +136,7 @@ def create_metadata(args):
         metadata["metrics"].append(mets)
 
     with open("pipeline-metadata.json", "w") as fout:
-        json.dump(metadata, fout)
+        json.dump(metadata, fout, default=str)
 
 
 def parse_args():

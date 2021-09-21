@@ -25,7 +25,7 @@ def construct_citeseq_cli_options(record) {
 
     options["--bc_collapsing_dist"] = record.bc_collapsing_dist ?: 1
     options["--umi_collapsing_dist"] = record.umi_collapsing_dist ?: 2
-    options["--expected_cells"] = record.n_cells ?: 250000
+    options["--expected_cells"] = record.n_cells ?: 40000
     options["--max-errors"] = record.max_errors ?: 1
 
     // don't specifiy -T (threads) or offset here
@@ -62,7 +62,7 @@ process run_citeseq_count {
       val record
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
-      tuple val(record), path("${record.tool_pubdir}/*{report}*", glob: true), emit: metrics
+      tuple val(record), path("${record.tool_pubdir}/run_report.yaml"), emit: metrics
 
     script:
     def (tag_file_content, trim_offset) = create_tag_reference(record)
