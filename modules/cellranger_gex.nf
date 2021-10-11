@@ -21,6 +21,7 @@ def construct_gex_cli_options(record) {
 
     options["--expect-cells"] = record.n_cells ?: 6000
     options["--description"] = record.sample_name
+    options["--disable-ui"] = null
 
     // need to be super careful here
     // --include-introns flag evaluates to true no matter what
