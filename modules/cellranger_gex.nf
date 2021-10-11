@@ -20,8 +20,22 @@ def construct_gex_cli_options(record) {
     }
 
     options["--expect-cells"] = record.n_cells ?: 6000
-    options["--include-introns"] = record.is_nuclei ?: false
     options["--description"] = record.sample_name
+
+    // need to be super careful here
+    // --include-introns flag evaluates to true no matter what
+    if (record.is_nuclei == true) {
+        if ( record.tool_version[0].toInteger() > 4 ) {
+            options["--include-introns"] = null
+        } else {
+            if (!(record.reference_path =~ /pre.*rna/)) {
+                throw new Exception('''
+                    Library contains nuclei but software version doesn't support --include-introns
+                    and the reference path doesn't appear to be a pre-mrna reference
+                ''')
+            }
+        }
+    }
 
     return(join_map_items(options))
 }
