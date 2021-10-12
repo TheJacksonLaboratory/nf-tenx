@@ -71,6 +71,7 @@ process run_cellranger_count {
 
     # do rearrange here
     mkdir -p ${record.tool_pubdir}/_files
+    mv \$lib_csv_file ${record.tool_pubdir}/
     mv ${record.output_id}/_* ${record.tool_pubdir}/_files
     mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
     find ${record.output_id}/SC_RNA_COUNTER_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
