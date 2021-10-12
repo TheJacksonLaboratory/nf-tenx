@@ -134,6 +134,9 @@ def check_samplesheet(samplesheet):
     except yaml.composer.ComposerError as e:
         print_error(e)
 
+    for k, record in enumerate(records, start=1):
+        _check_minimal_fields(k, record)
+
     check_assay(
         "GEX",
         "cellranger",
