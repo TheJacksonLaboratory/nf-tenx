@@ -13,7 +13,7 @@ def construct_gex_cli_options(record) {
     options["--transcriptome"] = record.reference_path
 
     if ( record.tool_version[0].toInteger() < 4 ) {
-        options["--samples"] = record.prefixes.join(",")
+        options["--sample"] = record.prefixes.join(",")
         options["--fastqs"] = record.fastq_paths.join(",")
     } else {
         options["--libraries"] = "${record.output_id}.csv"
