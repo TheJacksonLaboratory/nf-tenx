@@ -48,7 +48,7 @@ def collect_fastqs(record) {
         fastq -> if(fastq =~ /$lib/) { 
            if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
            // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
-           prefix = (file(fastq).getName() =~ /(.*)_S\d+_L\d+_[IR]\d+_001.fastq.gz/)[0][1]
+           prefix = (file(fastq).getName() =~ /(.*)_S\d+_(L\d+_)?[IR]\d+_001.fastq.gz/)[0][1]
            if (!(prefix in prefixes)) { prefixes.add(prefix) }
         }
       }
