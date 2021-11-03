@@ -85,6 +85,14 @@ def count_reads_approx(record) {
     }
   }
   record["n_reads"] = lines.intdiv(9)
+  if (lines < 1) {
+      record.fastqs.each {
+        it -> if(it =~ /_R1_/) {
+          lines += file(it).size()
+        }
+      }
+      record["n_reads"] = lines.intdiv(22)
+  }
   return(record)
 }
 
