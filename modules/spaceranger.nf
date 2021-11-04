@@ -24,7 +24,7 @@ def construct_vis_cli_options(record) {
 }
 
 
-process run_spaceranger_count {
+process SPACERANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 

@@ -17,7 +17,8 @@ def construct_vdj_cli_options(record) {
     return(join_map_items(options))
 }
 
-process run_cellranger_vdj {
+
+process CELLRANGER_VDJ {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 

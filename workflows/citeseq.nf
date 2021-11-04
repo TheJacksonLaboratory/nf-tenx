@@ -4,8 +4,8 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hashes.nf'
-include { run_citeseq_count } from '../modules/citeseq_count.nf'
+include { COMPUTE_FASTQ_HASHES; COMPUTE_PROCESSED_HASHES } from '../modules/hashes.nf'
+include { CITESEQ_COUNT } from '../modules/citeseq_count.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
 
@@ -13,15 +13,15 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow CITESEQ {
     take: citeseq_records
     main:
-    compute_fastq_hashes(citeseq_records)
+    COMPUTE_FASTQ_HASHES(citeseq_records)
     FASTQC(citeseq_records)
     MULTIQC(FASTQC.out.fastqc_results)
 
-    run_citeseq_count(citeseq_records)
-    compute_processed_hashes(run_citeseq_count.out.hash_dir)
+    CITESEQ_COUNT(citeseq_records)
+    COMPUTE_PROCESSED_HASHES(CITESEQ_COUNT.out.hash_dir)
 
-    metadata_input = compute_fastq_hashes.out.input_hashes
-        .join(compute_processed_hashes.out.output_hashes, remainder:true)
-        .join(run_citeseq_count.out.metrics, remainder:true)
+    metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
+        .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)
+        .join(CITESEQ_COUNT.out.metrics, remainder:true)
     DUMP_METADATA(metadata_input)
 }

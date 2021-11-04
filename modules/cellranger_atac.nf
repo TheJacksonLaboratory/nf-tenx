@@ -19,7 +19,7 @@ def construct_atac_cli_options(record) {
 }
 
 
-process run_cellranger_atac_count {
+process CELLRANGER_ATAC_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 

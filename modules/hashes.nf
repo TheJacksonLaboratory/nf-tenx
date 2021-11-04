@@ -5,7 +5,7 @@ vim: syntax=groovy
 */
 
 
-process compute_fastq_hashes {
+process COMPUTE_FASTQ_HASHES {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*", mode: "copy"
 
@@ -24,7 +24,7 @@ process compute_fastq_hashes {
     """
 }
 
-process compute_processed_hashes {
+process COMPUTE_PROCESSED_HASHES {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/${record.tool_pubdir}", pattern: "*", mode: "copy"
 

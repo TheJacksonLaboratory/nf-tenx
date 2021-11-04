@@ -4,8 +4,8 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { compute_fastq_hashes; compute_processed_hashes } from '../modules/hashes.nf'
-include { run_cellranger_count } from '../modules/cellranger_gex.nf'
+include { COMPUTE_FASTQ_HASHES; COMPUTE_PROCESSED_HASHES } from '../modules/hashes.nf'
+include { CELLRANGER_COUNT } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
@@ -14,16 +14,16 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow TENX_GEX {
     take: gex_records
     main:
-    compute_fastq_hashes(gex_records)
+    COMPUTE_FASTQ_HASHES(gex_records)
     FASTQC(gex_records)
     MULTIQC(FASTQC.out.fastqc_results)
 
-    run_cellranger_count(gex_records)
-    SEQUENCING_SATURATION(run_cellranger_count.out.cellranger_outputs)
-    compute_processed_hashes(SEQUENCING_SATURATION.out.hash_data)
+    CELLRANGER_COUNT(gex_records)
+    SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
+    COMPUTE_PROCESSED_HASHES(SEQUENCING_SATURATION.out.hash_data)
 
-    metadata_input = compute_fastq_hashes.out.input_hashes
-        .join(compute_processed_hashes.out.output_hashes, remainder:true)
-        .join(run_cellranger_count.out.metrics, remainder:true)
+    metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
+        .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)
+        .join(CELLRANGER_COUNT.out.metrics, remainder:true)
     DUMP_METADATA(metadata_input)
 }

@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-process run_cellranger_multi {
+process CELLRANGER_MULTI {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     memory 1.GB
     cpus 1
