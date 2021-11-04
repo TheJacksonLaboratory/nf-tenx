@@ -4,32 +4,43 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-nextflow.enable.dsl=2
+nextflow.enable.dsl = 2
 
-params.pubdir = "pubdir"
+/*
+========================================================================================
+    EMERGENCY PARAM SETUP
+========================================================================================
+*/
 
-include { TENX_GEX } from './workflows/tenx_gex'
-include { TENX_ARC } from './workflows/tenx_arc'
-include { TENX_ATAC } from './workflows/tenx_atac'
-include { TENX_VISIUM } from './workflows/tenx_visium'
-include { TENX_VDJ } from './workflows/tenx_vdj'
-include { CITESEQ } from './workflows/citeseq'
-include { load_samplesheet } from './modules/functions.nf'
-include { CHECK_INPUT } from './modules/preflight.nf'
+params.pubdir = params.getOrDefault("pubdir", "pubdir")
 
+/*
+========================================================================================
+    INITIALIZE
+========================================================================================
+*/
 
 WorkflowMain.initialize(workflow, params, log)
 
+/*
+========================================================================================
+    MAIN WORKFLOW
+========================================================================================
+*/
+
+include { TENX } from './workflows/tenx'
+
+
+workflow NF_TENX {
+    TENX()
+}
+
+/*
+========================================================================================
+    RUN WORKFLOWS
+========================================================================================
+*/
 
 workflow {
-    CHECK_INPUT(params.samplesheet)
-
-    records = load_samplesheet(CHECK_INPUT.out.all_good)
-
-    TENX_GEX(records.gex)
-    TENX_ATAC(records.atac)
-    TENX_ARC(records.arc)
-    TENX_VISIUM(records.visium)
-    TENX_VDJ(records.vdj)
-    CITESEQ(records.citeseq)
+    NF_TENX()
 }
