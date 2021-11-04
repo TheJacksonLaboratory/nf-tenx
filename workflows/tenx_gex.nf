@@ -14,7 +14,6 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow TENX_GEX {
     take: gex_records
     main:
-    gex_records.view{ record -> "GEX Record: $record.output_id, $record" }
     compute_fastq_hashes(gex_records)
     FASTQC(gex_records)
     MULTIQC(FASTQC.out.fastqc_results)
@@ -26,6 +25,5 @@ workflow TENX_GEX {
     metadata_input = compute_fastq_hashes.out.input_hashes
         .join(compute_processed_hashes.out.output_hashes, remainder:true)
         .join(run_cellranger_count.out.metrics, remainder:true)
-    metadata_input.view()
     DUMP_METADATA(metadata_input)
 }

@@ -13,7 +13,6 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow TENX_VISIUM {
     take: vis_records
     main:
-    vis_records.view{ record -> "Record: $record.output_id, $record" }
     compute_fastq_hashes(vis_records)
     FASTQC(vis_records)
     MULTIQC(FASTQC.out.fastqc_results)

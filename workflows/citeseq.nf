@@ -13,7 +13,6 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow CITESEQ {
     take: citeseq_records
     main:
-    citeseq_records.view{ record -> "CITESEQ / HTO Record: $record.output_id, $record" }
     compute_fastq_hashes(citeseq_records)
     FASTQC(citeseq_records)
     MULTIQC(FASTQC.out.fastqc_results)

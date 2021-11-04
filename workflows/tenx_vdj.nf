@@ -13,7 +13,6 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow TENX_VDJ {
     take: vdj_records
     main:
-    vdj_records.view{ record -> "VDJ Record: $record.output_id, $record" }
     compute_fastq_hashes(vdj_records)
     FASTQC(vdj_records)
     MULTIQC(FASTQC.out.fastqc_results)

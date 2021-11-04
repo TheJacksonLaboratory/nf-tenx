@@ -13,7 +13,6 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 workflow TENX_ATAC {
     take: atac_records
     main:
-    atac_records.view{ record -> "Record: $record.output_id, $record" }
     compute_fastq_hashes(atac_records)
     FASTQC(atac_records)
     MULTIQC(FASTQC.out.fastqc_results)
