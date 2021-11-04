@@ -7,6 +7,24 @@ import groovy.json.*
 import org.yaml.snakeyaml.Yaml
 
 
+//
+// From nf-core/rnaseq
+// Extract name of software tool from process name using $task.process
+//
+def getSoftwareName(task_process) {
+    return task_process.tokenize(':')[-1].tokenize('_')[0].toLowerCase()
+}
+
+//
+// From nf-core/rnaseq
+// Extract name of module from process name using $task.process
+//
+def getProcessName(task_process) {
+    return task_process.tokenize(':')[-1]
+}
+
+
+
 def join_map_items(it) {
   it.collect { it.value ? /$it.key="$it.value"/ : /$it.key/ } join " "
 }
