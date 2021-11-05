@@ -33,3 +33,22 @@ process CHECK_INPUT {
     END_VERSIONS
     """
 }
+
+
+process COUNT_READS {
+    cpus 1
+    memory 500
+    input:
+    val(record)
+
+    output:
+    tuple val(record), path("n_reads")
+
+    script:
+    fastqs = record.fastqs.findAll { it =~ /_R1_/ }.join(" ")
+    """
+    n_lines=\$(zcat $fastqs | wc -l)
+    echo \$((n_lines / 4)) > n_reads
+    """
+}
+
