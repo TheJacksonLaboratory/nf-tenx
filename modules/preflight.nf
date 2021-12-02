@@ -47,8 +47,9 @@ process COUNT_READS {
     script:
     fastqs = record.fastqs.findAll { it =~ /_R1_/ }.join(" ")
     """
-    n_lines=\$(zcat $fastqs | wc -l)
-    echo \$((n_lines / 4)) > n_reads
+    arr=()
+    for fq in $fastqs; do arr+=($(estFqReadCount $fq)); done
+    echo "${arr/%/+}0" | bc > n_reads
     """
 }
 
