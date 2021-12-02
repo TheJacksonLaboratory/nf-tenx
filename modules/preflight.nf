@@ -11,7 +11,7 @@ process CHECK_INPUT {
     tag "$samplesheet"
 
     time 5.min
-    
+    executor 'local'
     container "library://singlecell/minpyyaml:latest"
 
     input:
@@ -38,6 +38,8 @@ process CHECK_INPUT {
 process COUNT_READS {
     cpus 1
     memory 500
+    executor 'local'
+
     input:
     val(record)
 
@@ -48,8 +50,8 @@ process COUNT_READS {
     fastqs = record.fastqs.findAll { it =~ /_R1_/ }.join(" ")
     """
     arr=()
-    for fq in $fastqs; do arr+=($(estFqReadCount $fq)); done
-    echo "${arr/%/+}0" | bc > n_reads
+    for fq in $fastqs; do arr+=(\$(estFqReadCount -s 5 \$fq)); done
+    echo "\${arr/%/+}0" | bc > n_reads
     """
 }
 
