@@ -17,7 +17,7 @@ def construct_arc_cli_options(record) {
 }
 
 
-process run_cellranger_arc_count {
+process CELLRANGER_ARC_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 

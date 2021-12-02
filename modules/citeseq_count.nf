@@ -48,7 +48,7 @@ def create_tag_reference(record) {
 }
 
 
-process run_citeseq_count {
+process CITESEQ_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 

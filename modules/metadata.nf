@@ -47,6 +47,7 @@ process DUMP_METADATA {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "*", mode: "move"
 
     time 5.min
+    executor 'local'
 
     container "library://singlecell/minpyyaml:latest"
 

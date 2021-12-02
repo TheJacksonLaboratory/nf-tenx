@@ -42,7 +42,7 @@ def construct_gex_cli_options(record) {
 }
 
 
-process run_cellranger_count {
+process CELLRANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
 
