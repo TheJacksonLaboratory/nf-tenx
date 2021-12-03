@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { join_map_items } from './functions.nf'
+include { construct_library_csv_content; join_map_items } from './functions.nf'
  
 
 def construct_arc_cli_options(record) {
