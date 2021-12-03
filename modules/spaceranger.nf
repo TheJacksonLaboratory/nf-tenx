@@ -27,6 +27,7 @@ def construct_vis_cli_options(record) {
 process SPACERANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
+    label "10x_genomics_count"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 

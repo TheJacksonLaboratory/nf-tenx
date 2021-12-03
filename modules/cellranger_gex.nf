@@ -45,6 +45,7 @@ def construct_gex_cli_options(record) {
 process CELLRANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
+    label "10x_genomics_count"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 

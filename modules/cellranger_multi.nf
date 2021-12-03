@@ -6,9 +6,8 @@ vim: syntax=groovy
 
 process CELLRANGER_MULTI {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
-    memory 1.GB
-    cpus 1
     tag "$record.output_id"
+    label "10x_genomics_other"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 

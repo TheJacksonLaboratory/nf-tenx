@@ -20,6 +20,7 @@ def construct_arc_cli_options(record) {
 process CELLRANGER_ARC_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
+    label "10x_genomics_count"
 
     // cpus determined by profile
     // memory determined by profile

@@ -51,6 +51,7 @@ def create_tag_reference(record) {
 process CITESEQ_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
+    label "alternative_count"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 
