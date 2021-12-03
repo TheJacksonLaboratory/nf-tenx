@@ -18,17 +18,14 @@ workflow INPUT_CHECK {
 
     ch = Channel.fromList(
         load_sample_sheet(CHECK_INPUT.out.yml)
-    )
-        .map{ it -> construct_output_id(it) }
-        .map{ it -> construct_tool_pubdir(it) }
-        .map{ it -> collect_fastqs(it) }
-        .map{ it -> parse_gt_ids(it) }
-         
-
-    COUNT_READS(ch)
-        .map { rec, f -> read_n_reads(rec, f) }
-        .set { main_records }
-
+    ) \
+        | map { it -> construct_output_id(it) } \
+        | map { it -> construct_tool_pubdir(it) } \
+        | map { it -> collect_fastqs(it) } \
+        | map { it -> parse_gt_ids(it) } \
+        | COUNT_READS \
+        | map { rec, f -> read_n_reads(rec, f) } \
+        | set { main_records }
 
     emit:
     main_records
