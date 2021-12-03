@@ -4,6 +4,9 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
+include { construct_library_csv_content; join_map_items } from './functions.nf'
+
+
 def construct_vis_cli_options(record) {
     options = [:]
     options["--id"] = record.output_id
@@ -11,14 +14,24 @@ def construct_vis_cli_options(record) {
     options["--sample"] = record.prefixes.join(",")
     options["--fastqs"] = record.fastq_paths.join(",")
 
-    options["image"] = record.image
-    options["slide"] = record.slide
-    options["area"] = record.area
+    options["--image"] = record.image
+    options["--slide"] = record.slide
+    options["--area"] = record.area
     options["--description"] = record.sample_name
+    if (record.library_types.any{ it =~ "FFPE" }) {
+        if (record.probe_set) {
+            options["--probe-set"] = record.probe_set
+        } else {
+            throw new Exception("No probeset specified for ${record.output_id}")
+        }
+    }
 
     if (record.dark_image) { options["--darkimage"] = record.dark_image }
+    if (record.color_image) { options["--colorizedimage"] = record.color_image }
     if (record.manual_alignment) { options["--loupe-alignment"] = record.manual_alignment }
-    if (record.no_bam) { options["--no-bam"] = "" }
+    if (record.slide_file) { options["--slidefile"] = record.slide_file }
+    if (record.requires_rotation) { options["--reorient-images"] = null }
+    if (record.no_bam) { options["--no-bam"] = null }
 
     return(join_map_items(options))
 }
@@ -27,7 +40,7 @@ def construct_vis_cli_options(record) {
 process SPACERANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
-    label "10x_genomics_count"
+    label "tenx_genomics_count"
 
     container "library://singlecell/${record.tool}:${record.tool_version}"
 

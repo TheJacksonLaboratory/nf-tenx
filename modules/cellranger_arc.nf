@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { construct_library_csv_content; join_map_items } from './functions.nf'
+include { join_map_items } from './functions.nf'
  
 
 def construct_arc_cli_options(record) {
@@ -20,7 +20,7 @@ def construct_arc_cli_options(record) {
 process CELLRANGER_ARC_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
-    label "10x_genomics_count"
+    label "tenx_genomics_count"
 
     // cpus determined by profile
     // memory determined by profile

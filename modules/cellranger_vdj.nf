@@ -21,7 +21,7 @@ def construct_vdj_cli_options(record) {
 process CELLRANGER_VDJ {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
-    label "10x_genomics_other"
+    label "tenx_genomics_other"
 
     // cpus determined by profile
     // memory determined by profile
