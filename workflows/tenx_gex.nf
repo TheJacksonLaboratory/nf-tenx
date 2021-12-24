@@ -20,7 +20,12 @@ workflow TENX_GEX {
 
     CELLRANGER_COUNT(gex_records)
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
-    COMPUTE_PROCESSED_HASHES(SEQUENCING_SATURATION.out.hash_data)
+
+    hash_input = CELLRANGER_COUNT.out.cellranger_outputs
+        .join(SEQUENCING_SATURATION.out.hash_data, remainder:true)
+        .map { it -> [ it[0], it[1..-1].flatten()] }
+
+    COMPUTE_PROCESSED_HASHES(hash_input)
 
     metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
         .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)
