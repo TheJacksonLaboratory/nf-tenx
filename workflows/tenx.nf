@@ -13,7 +13,9 @@ include { CITESEQ } from './citeseq'
 include { INPUT_CHECK } from './input_preprocess'
 
 
-if (params.samplesheet) { ch_samplesheet = file(params.samplesheet) } else { exit 1, "Samplesheet not specificed!"}
+if (params.samplesheet) { 
+    ch_samplesheet = channel.fromPath(params.samplesheet)
+} else { exit 1, "Samplesheet not specificed!"}
 
 
 workflow TENX {

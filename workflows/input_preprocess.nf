@@ -3,32 +3,30 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 */
+import org.yaml.snakeyaml.Yaml
 
-include { CHECK_INPUT; COUNT_READS } from '../modules/preflight'
-include { read_n_reads; collect_fastqs; parse_gt_ids; load_sample_sheet } from '../modules/samplesheet'
+include { CHECK_SAMPLESHEET; COUNT_READS } from '../modules/preflight'
+include { read_n_reads; collect_fastqs; parse_gt_ids; parse_yaml } from '../modules/samplesheet'
 include { construct_output_id; construct_tool_pubdir; } from '../modules/samplesheet'
-
 
 workflow INPUT_CHECK {
     take:
     samplesheet
 
     main:
-    CHECK_INPUT(samplesheet)
-
-    ch = Channel.fromList(
-        load_sample_sheet(CHECK_INPUT.out.yml)
-    ) \
-        | map { it -> construct_output_id(it) } \
-        | map { it -> construct_tool_pubdir(it) } \
-        | map { it -> collect_fastqs(it) } \
-        | map { it -> parse_gt_ids(it) } \
+    CHECK_SAMPLESHEET(samplesheet).yml \
+        | map { parse_yaml(it) } \
+        | flatten() \
+        | map { construct_output_id(it) } \
+        | map { construct_tool_pubdir(it) } \
+        | map { collect_fastqs(it) } \
+        | map { parse_gt_ids(it) } \
         | COUNT_READS \
         | map { rec, f -> read_n_reads(rec, f) } \
         | set { main_records }
 
     emit:
     main_records
-    versions = CHECK_INPUT.out.versions
+    versions = CHECK_SAMPLESHEET.out.versions
 }
 

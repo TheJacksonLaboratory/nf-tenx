@@ -7,7 +7,7 @@ vim: syntax=groovy
 include { getProcessName } from './functions'
 
 
-process CHECK_INPUT {
+process CHECK_SAMPLESHEET {
     tag "$samplesheet"
 
     time 5.min
@@ -18,14 +18,12 @@ process CHECK_INPUT {
     path samplesheet
 
     output:
-    path "*.yml", emit: yml
+    path "samplesheet.checked.yml", emit: yml
     path "version.yml", emit: versions
 
     script:
     """
-    check_samplesheet.py $samplesheet
-
-    sleep 20
+    check_samplesheet.py $samplesheet samplesheet.checked.yml
 
     cat <<-END_VERSION > version.yml
     ${getProcessName(task.process)}:
