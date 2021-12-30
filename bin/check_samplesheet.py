@@ -20,6 +20,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description=desc, epilog=epilog)
     parser.add_argument("samplesheet", type=Path, help="Input samplesheet file")
+    parser.add_argument("outsheet", type=Path, help="Output samplesheet file")
     return parser.parse_args()
 
 
@@ -188,12 +189,15 @@ def check_samplesheet(samplesheet):
         records,
         additional_fields=["tags"],
     )
+    return records
 
 
 def main():
     args = parse_args()
-    check_samplesheet(args.samplesheet)
+    records = check_samplesheet(args.samplesheet)
     print("\tSamplesheet passed all checks.")
+    with open(args.outsheet, "w") as fout:
+        dump(records, fout, Dumper=Dumper)
 
 
 if __name__ == "__main__":
