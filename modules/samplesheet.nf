@@ -14,6 +14,7 @@ def collect_fastqs(LinkedHashMap record) {
     for(lib in record.libraries) {
       file(fqp).eachFile { 
         fastq -> if(fastq =~ /$lib/) { 
+           if (fastq.isHidden()) { return }
            if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
            // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
            def prefix = (file(fastq).getName() =~ /(.*)_S\d+_(L\d+_)?[IR]\d+_001.fastq.gz/)[0][1]
