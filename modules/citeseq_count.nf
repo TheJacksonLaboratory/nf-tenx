@@ -38,7 +38,7 @@ def create_tag_reference(record) {
     content = []
     offset = 0
     params.tag_list.eachLine { line ->
-        def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name) = line.split(",")
+        def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name, pattern) = line.split(",")
         if (tag_type in record["library_types"] && tag_id in record["tags"]) {
             content.add("${tag_sequence},${tag_id}_${tag_name}")
             offset = offset5p
