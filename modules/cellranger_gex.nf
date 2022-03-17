@@ -38,8 +38,40 @@ def construct_gex_cli_options(record) {
         }
     }
 
-    return(join_map_items(options))
+    // handle feature barcoding here
+    // --feature-ref
+    // Example:
+    //   If using TotalSeq-B Abs, you must specify the library as 'Antibody
+    //   Capture' for feature barcoding to kick in
+    //   Otherwise, you must list it as a separate library with tool cite-seq 
+    // must specify "tags" and "feature_ref_type" in record
+    feature_ref_types = ["Custom", "Antibody Capture", "CRISPR Guide Capture"]
+    ref_conent = ""
+    if (
+        (!record.libraries.intersect(feature_ref_types).isEmpty()) &&
+        (record.get("feature_ref_type", "") in feature_ref_types) &&
+        (!record.get("tags", []).isEmpty())
+    ) {
+        options["--feature-ref"] = "${record.output_id}_feature_ref.csv"
+        ref_content = create_feature_reference(record)
+    }
+
+    return [join_map_items(options), ref_content]
 }
+
+
+def create_feature_reference(record) {
+    content = []
+    offset = 0
+    feature_type = record.get("feature_ref_type")
+    params.tag_list.eachLine { line ->
+        def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name, pattern) = line.split(",")
+        if (tag_type in record["library_types"] && tag_id in record["tags"]) {
+            content.add("${tag_id},${tag_name},${read},${pattern},${tag_sequence},${feature_type}")
+            offset = offset5p
+        }
+    }
+    return content.join("\n")
 
 
 process CELLRANGER_COUNT {
@@ -61,12 +93,16 @@ process CELLRANGER_COUNT {
       tuple val(record), path("${record.tool_pubdir}/*{metrics,summary}*", glob: true), emit: metrics
 
     script:
-    main_options = construct_gex_cli_options(record)
-    lib_csv_content = construct_library_csv_content(record)
-    localmem = Math.round(task.memory.toGiga() * 0.95)
+    def (main_options, feature_ref_content) = construct_gex_cli_options(record)
+    def lib_csv_content = construct_library_csv_content(record)
+    def localmem = Math.round(task.memory.toGiga() * 0.95)
     """
     lib_csv_file=${record.output_id}.csv
     echo -e '$lib_csv_content' > \$lib_csv_file
+
+    if [ ! -z "${feature_ref_content}" ]; then
+        echo -e '$feature_ref_content' > ${record.output_id}_feature_ref.csv
+    fi
 
     cellranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
