@@ -72,6 +72,7 @@ def create_feature_reference(record) {
         }
     }
     return content.join("\n")
+}
 
 
 process CELLRANGER_COUNT {

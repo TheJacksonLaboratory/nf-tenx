@@ -236,7 +236,6 @@ class VISCountChecker(AssayChecker):
         )
         for key in ("slide", "area", "image"):
             self.required_fields.add(key)
-        self.required_fields.remove("reference_path")
 
     def additional_checks(self, record_id, record):
         image_path = record.get("image", None)
@@ -244,11 +243,8 @@ class VISCountChecker(AssayChecker):
             print_error(f"Record {record_id}: image {record['image']} does not exist")
 
         # FFPE
-        if record.get("reference_path", None) is None:
-            probe_set = record.get("probe_set", None)
-            if not probe_set:
-                print_error(f"Record {record_id} doesn't have a probe set")
-
+        probe_set = record.get("probe_set", None)
+        if probe_set is not None:
             # hack so we can test without nextflow
             probe_loc = ASSET_DIR / "probe_sets"
             probe_set = probe_loc / probe_set

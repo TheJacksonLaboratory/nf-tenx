@@ -7,23 +7,23 @@ vim: syntax=groovy
 include { join_map_items } from './functions.nf'
 
 
+params.probe_dir = "${workflow.projectDir}/assets/probe_sets"
+
+
 def construct_vis_cli_options(record) {
     options = [:]
     options["--id"] = record.output_id
-    options["--transcriptome"] = record.reference_path
     options["--sample"] = record.prefixes.join(",")
     options["--fastqs"] = record.fastq_paths.join(",")
+    options["--transcriptome"] = record.reference_path
 
     options["--image"] = record.image
     options["--slide"] = record.slide
     options["--area"] = record.area
     options["--description"] = record.sample_name
-    if (record.library_types.any{ it =~ "FFPE" }) {
-        if (record.probe_set) {
-            options["--probe-set"] = record.probe_set
-        } else {
-            throw new Exception("No probeset specified for ${record.output_id}")
-        }
+
+    if (!record.get("probe_set", "").isEmpty()) {
+        options["--probe-set"] = file("${params.probe_dir}/${record.probe_set}", checkIfExists: true)
     }
 
     if (record.dark_image) { options["--darkimage"] = record.dark_image }
