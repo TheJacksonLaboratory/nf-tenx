@@ -222,7 +222,7 @@ class ARCCountChecker(AssayChecker):
 
     def additional_checks(self, record_id, record):
         # assert we have both library types
-        has_both_lib_types = len(set(record.library_types)) == 2
+        has_both_lib_types = len(set(record["library_types"])) == 2
         if not has_both_lib_types:
             print_error(
                 f"Record {record_id} needs to have both library types: {self.allowed_library_types}"
