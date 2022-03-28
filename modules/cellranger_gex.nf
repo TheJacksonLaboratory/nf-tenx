@@ -46,7 +46,7 @@ def construct_gex_cli_options(record) {
     //   Otherwise, you must list it as a separate library with tool cite-seq 
     // must specify "tags" and "feature_ref_type" in record
     feature_ref_types = ["Custom", "Antibody Capture", "CRISPR Guide Capture"]
-    ref_conent = ""
+    ref_content = ""
     if (
         (!record.libraries.intersect(feature_ref_types).isEmpty()) &&
         (record.get("feature_ref_type", "") in feature_ref_types) &&
