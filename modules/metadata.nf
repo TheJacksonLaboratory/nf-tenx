@@ -52,7 +52,7 @@ process DUMP_METADATA {
     container "library://singlecell/minpyyaml:latest"
 
     input:
-    tuple val(record), path("input.md5"), path("output.md5"), path("*")
+    tuple val(record), path("input*.md5"), path("output*.md5"), path("*")
 
     output:
     path 'pipeline-metadata.json'
@@ -60,6 +60,7 @@ process DUMP_METADATA {
     script:
     workflow_json = serialize_workflow()
     record_json = serialize_record(record)
+    
     """
     echo '${workflow_json}' > workflow.json
     echo '${record_json}' > record.json
@@ -68,8 +69,8 @@ process DUMP_METADATA {
         --record record.json \
         --workflow workflow.json \
         --out pipeline-metadata.json \
-        --input-checksums input.md5 \
-        --output-checksums output.md5 \
+        --input-checksums input*.md5 \
+        --output-checksums output*.md5 \
         --metrics *{metrics,summary,report}*
     """
 }

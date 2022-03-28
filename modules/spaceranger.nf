@@ -69,3 +69,27 @@ process SPACERANGER_COUNT {
     find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool_pubdir}/spatial/alignment_summary.json \\;
     """
 }
+
+process IMAGE_PROCESS {
+    publishDir "${params.pubdir}/${record.output_id}/img", pattern: "*", mode: "copy"
+    tag "$record.output_id"
+    label "tenx_genomics_count"
+
+    container "library://singlecell/${record.tool}:${record.tool_version}"
+
+    input:
+      val(record)
+    output:
+      path("*")
+      tuple val(record), path("*.md5"), emit: img_hashes
+
+    script:
+    record.roi_json = record.roi_json ?: ""
+    """
+    cp ${record.image} .
+    if [ ! -z "${record.roi_json}" ]; then
+        cp ${record.roi_json} .
+    fi
+    md5sum * > hashes_img.md5
+    """
+}

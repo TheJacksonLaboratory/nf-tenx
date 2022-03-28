@@ -147,8 +147,8 @@ def parse_args():
     parser.add_argument("--record", required=True, type=Path, help="JSON file containing record information")
     parser.add_argument("--workflow", required=True, type=Path, help="JSON file containing workflow information")
     parser.add_argument("--out", type=Path, default="pipeline-metadata.json", help="JSON file containing compiled metadata")
-    parser.add_argument("--input-checksums", required=True, type=Path, action="append")
-    parser.add_argument("--output-checksums", required=True, type=Path, action="append")
+    parser.add_argument("--input-checksums", required=True, type=Path, nargs="+")
+    parser.add_argument("--output-checksums", required=True, type=Path, nargs="+")
     parser.add_argument("--metrics", required=True, type=Path, nargs="+")
 
     return parser.parse_args()
