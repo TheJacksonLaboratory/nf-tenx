@@ -45,12 +45,13 @@ class AssayChecker:
         "citeseq-count": [None],
     }
 
-    def __init__(self, assay_type, tool, command, library_types):
+    def __init__(self, assay_type, tool, command, library_types, min_version='0.0.0'):
         self.assay_type = assay_type
 
         if tool not in self.supported_tools:
             raise Exception(f"Tool {tool} not yet support by this pipeline")
         self.tool = tool
+        self.min_tool_version = min_version
 
         if command not in self.supported_tools[tool]:
             raise Exception(
@@ -136,7 +137,14 @@ class AssayChecker:
                 f"Record {record_id} has inconsistent number of libraries, library_types, and fastq_paths"
             )
 
+        tv = record.get("tool_version") 
+        if tv < self.min_tool_version:
+            print_error(
+                f"Record {record_id} has an incompatiable tool version '{tv} < {self.min_tool_version}'"
+            )
+
         self.check_fastqs_exist(record_id, record)
+
 
     def check_tags_exist(self, record_id, record):
         tag_catalog = {}
@@ -186,6 +194,53 @@ class GEXCountChecker(AssayChecker):
                 )
             self.check_tags_exist(record_id, record)
 
+
+class GEXMultiChecker(AssayChecker):
+    def __init__(self):
+        super().__init__(
+            "GEX",
+            "cellranger",
+            "multi",
+            [
+                "Gene Expression",
+                "Multiplexing Capture",
+                "Antibody Capture",
+                "CRISPR Guide Capture",
+            ],
+        )
+
+
+    def additional_checks(self, record_id, record):
+        if "Multiplexing Capture" not in record["library_types"]:
+            print_error(
+                f"Record {record_id} must have a 'Multiplexing Capture' library type"
+            )
+
+        # design key must be present
+        design = record.get("design", None)
+        if design is None:
+            print_error(
+                f"Record {record_id} must have a 'design' specification"
+            )
+
+        # n_cells key must be present
+        cells = record.get("n_cells", None)
+        if cells is None:
+            print_error(
+                f"Record {record_id} must have a 'n_cells' specification"
+            )
+
+        nongex_lib_types = set(self.allowed_library_types) - set(["Gene Expression", "Multiplexing Capture"])
+        has_nongex_libs = nongex_lib_types & set(record["library_types"])
+        if has_nongex_libs:
+            tag_list = record.get("tags", None)
+            if not tag_list:
+                print_error(
+                    f"Record {record_id} has nonGEX library types but no tag list or design"
+                )
+            self.check_tags_exist(record_id, record)
+        
+        
 
 
 class ImmuneVDJChecker(AssayChecker):
@@ -280,6 +335,7 @@ def check_samplesheet(samplesheet):
 
     checkers = [
         GEXCountChecker(),
+        GEXMultiChecker(),
         ImmuneVDJChecker(),
         ATACCountChecker(),
         ARCCountChecker(),

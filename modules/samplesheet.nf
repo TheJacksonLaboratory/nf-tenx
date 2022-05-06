@@ -13,7 +13,7 @@ def collect_fastqs(LinkedHashMap record) {
   for(fqp in record.fastq_paths) {
     for(lib in record.libraries) {
       file(fqp).eachFile { 
-        fastq -> if(fastq =~ /$lib/) { 
+        fastq -> if(fastq =~ /${lib}.*fastq.*/) { 
            if (fastq.isHidden()) { return }
            if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
            // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
@@ -23,8 +23,8 @@ def collect_fastqs(LinkedHashMap record) {
       }
     }
   }
-  record["fastqs"] = fastqs
-  record["prefixes"] = prefixes
+  record["fastqs"] = fastqs.unique()
+  record["prefixes"] = prefixes.unique()
   
   return(record)
 }

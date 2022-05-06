@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { construct_library_csv_content; join_map_items } from './functions.nf'
+include { construct_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
 
 
 def construct_gex_cli_options(record) {
@@ -57,21 +57,6 @@ def construct_gex_cli_options(record) {
     }
 
     return [join_map_items(options), ref_content]
-}
-
-
-def create_feature_reference(record) {
-    content = []
-    offset = 0
-    feature_type = record.get("feature_ref_type")
-    params.tag_list.eachLine { line ->
-        def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name, pattern) = line.split(",")
-        if (tag_type in record["library_types"] && tag_id in record["tags"]) {
-            content.add("${tag_id},${tag_name},${read},${pattern},${tag_sequence},${feature_type}")
-            offset = offset5p
-        }
-    }
-    return content.join("\n")
 }
 
 

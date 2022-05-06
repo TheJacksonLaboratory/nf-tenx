@@ -9,6 +9,7 @@ include { TENX_ARC } from './tenx_arc'
 include { TENX_ATAC } from './tenx_atac'
 include { TENX_VISIUM } from './tenx_visium'
 include { TENX_VDJ } from './tenx_vdj'
+include { TENX_MULTI } from './tenx_multi'
 include { CITESEQ } from './citeseq'
 include { INPUT_CHECK } from './input_preprocess'
 
@@ -43,6 +44,7 @@ workflow TENX {
     TENX_ARC(records.arc)
     TENX_VISIUM(records.visium)
     TENX_VDJ(records.vdj)
+    TENX_MULTI(records.multi)
     CITESEQ(records.citeseq)
 }
 
