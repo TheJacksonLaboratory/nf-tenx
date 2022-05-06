@@ -19,13 +19,7 @@ workflow TENX_MULTI {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_MULTI(multi_records)
-    SEQUENCING_SATURATION(CELLRANGER_MULTI.out.cellranger_outputs)
-
-    hash_input = CELLRANGER_MULTI.out.cellranger_outputs
-        .join(SEQUENCING_SATURATION.out.hash_data, remainder:true)
-        .map { it -> [ it[0], it[1..-1].flatten()] }
-
-    COMPUTE_PROCESSED_HASHES(hash_input)
+    COMPUTE_PROCESSED_HASHES(CELLRANGER_MULTI.out.hash_dir)
 
     metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
         .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)

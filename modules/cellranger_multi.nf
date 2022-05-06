@@ -72,11 +72,11 @@ process CELLRANGER_MULTI {
     mv \$multi_csv_file ${record.tool_pubdir}/
     mv ${record.output_id}/_* ${record.tool_pubdir}/_files
     mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
+    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_contaminant_info.json" -exec mv {} ${record.tool_pubdir}/multi/tag_contaminant_info.json \\;
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "marginal_tag_call_metrics_json.json" -exec mv {} ${record.tool_pubdir}/multi/marginal_tag_calls.json \\;
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "non_tag_assignments.json" -exec mv {} ${record.tool_pubdir}/multi/non_tag_assignments.json \\;
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_umi_thresholds_json.json" -exec mv {} ${record.tool_pubdir}/multi/tag_umi_thresholds.json \\;
-    mv ${record.output_id}/outs/* ${record.tool_pubdir}/
     """
 }
