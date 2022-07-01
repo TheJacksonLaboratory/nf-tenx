@@ -206,14 +206,20 @@ class GEXMultiChecker(AssayChecker):
                 "Multiplexing Capture",
                 "Antibody Capture",
                 "CRISPR Guide Capture",
+                "LMO",
+                "TotalSeq-A",
+                "TotalSeq-B",
+                "TotalSeq-C",
+                "Custom"
             ],
         )
 
 
     def additional_checks(self, record_id, record):
-        if "Multiplexing Capture" not in record["library_types"]:
+        types = ["Multiplexing Capture", "LMO", "TotalSeq-A", "TotalSeq-B", "TotalSeq-C"]
+        if set(types) & set(record["library_types"]) == set():
             print_error(
-                f"Record {record_id} must have a 'Multiplexing Capture' library type"
+                f"Record {record_id} must have one of the following library types: '{types}'"
             )
 
         # design key must be present

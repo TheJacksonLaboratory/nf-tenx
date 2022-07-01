@@ -50,7 +50,7 @@ def construct_cellplex_library_csv_content(record) {
     "[gene-expression]",
     "reference,${record.reference_path}",
     "expect-cells,${record.n_cells}",
-    "include-introns,${record.is_nuclei}",
+    //"include-introns,${record.is_nuclei}",
     "[libraries]", 
     "fastq_id,fastqs,feature_types"
   ]
@@ -79,7 +79,8 @@ def create_feature_reference(record) {
     feature_type = record.get("feature_ref_type")
     params.tag_list.eachLine { line ->
         def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name, pattern) = line.split(",")
-        if (tag_type in record["library_types"] && tag_id in record["tags"]) {
+        //if (tag_type in record["library_types"] && tag_id in record["tags"]) {
+        if (tag_id in record["tags"]) {
             content.add("${tag_id},${tag_name},${read},${pattern},${tag_sequence},${feature_type}")
             offset = offset5p
         }

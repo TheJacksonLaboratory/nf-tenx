@@ -6,6 +6,33 @@ vim: syntax=groovy
 
 include { construct_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
 
+def intronic_options(record, opts) {
+    major_version = record.tool_version[0].toInteger()
+
+    if (record.is_nuclei == true)  {
+        switch(major_version) {
+            case { it >= 7 }:
+                opts["--include-introns"] = true
+
+            case { ( it <= 7 ) && (it > 4) }:
+                opts["--include-introns"] = null
+
+            case { it < 4 }:
+                if (!(record.reference_path =~ /pre.*rna/)) {
+                    throw new Exception('''
+                        Library contains nuclei but software version doesn't support --include-introns
+                        and the reference path doesn't appear to be a pre-mrna reference
+                    ''')
+                }
+        }
+    } else {
+        if (major_versoin >= 7) {
+            opts["--include-introns"] = false
+        }
+    }
+    return options
+}
+
 
 def construct_gex_cli_options(record) {
     options = [:]
@@ -25,18 +52,7 @@ def construct_gex_cli_options(record) {
 
     // need to be super careful here
     // --include-introns flag evaluates to true no matter what
-    if (record.is_nuclei == true) {
-        if ( record.tool_version[0].toInteger() > 4 ) {
-            options["--include-introns"] = null
-        } else {
-            if (!(record.reference_path =~ /pre.*rna/)) {
-                throw new Exception('''
-                    Library contains nuclei but software version doesn't support --include-introns
-                    and the reference path doesn't appear to be a pre-mrna reference
-                ''')
-            }
-        }
-    }
+    options = intronic_options(record, options)
 
     // handle feature barcoding here
     // --feature-ref
