@@ -10,15 +10,38 @@ import org.yaml.snakeyaml.Yaml
 def collect_fastqs(LinkedHashMap record) {
   def fastqs = []
   def prefixes = []
+
+  lanes = record.get("lanes")
+  if(lanes) {
+    lanes = lanes.collect{ it -> it.toString().padLeft(3, "0") }
+  } else {
+    lanes = ["\\d+"]
+  }
+
+  // logic here:
+  // for each fastq_path directory, loop over each FASTQ.
+  // If that matches as library ID or library ID + lane combination, then add it.
+  // Additionally, if `use_undetermined` is specified, add the corresponding
+  // Undetermined reads as well
   for(fqp in record.fastq_paths) {
     for(lib in record.libraries) {
-      file(fqp).eachFile { 
-        fastq -> if(fastq =~ /${lib}.*fastq.*/) { 
-           if (fastq.isHidden()) { return }
-           if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
-           // everything before S\d+_L\d+_[IR]\d+_001.fastq.gz
-           def prefix = (file(fastq).getName() =~ /(.*)_S\d+_(L\d+_)?[IR]\d+_001.fastq.gz/)[0][1]
-           if (!(prefix in prefixes)) { prefixes.add(prefix) }
+      for(lane in lanes) {
+        file(fqp).eachFile {
+
+          fastq -> if(fastq =~ /${lib}.*L${lane}.*fastq.*/) {
+            if (fastq.isHidden()) { return }
+            if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
+
+            def prefix = (file(fastq).getName() =~ /(.*)_S\d+_(L\d+_)?[IR]\d+_001.fastq.gz/)[0][1]
+            if (!(prefix in prefixes)) { prefixes.add(prefix) }
+
+          } else if(record.get("use_undetermined", false) && fastq =~ /Undetermined.*L${lane}.*fastq.*/ ) {
+            fastqs.add(fastq.toString())
+
+            prefix = "Undetermined"
+            if (!(prefix in prefixes)) { prefixes.add(prefix) }
+          } 
+
         }
       }
     }

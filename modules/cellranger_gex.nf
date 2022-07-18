@@ -26,7 +26,7 @@ def intronic_options(record, opts) {
                 }
         }
     } else {
-        if (major_versoin >= 7) {
+        if (major_version >= 7) {
             opts["--include-introns"] = false
         }
     }
@@ -38,13 +38,6 @@ def construct_gex_cli_options(record) {
     options = [:]
     options["--id"] = record.output_id
     options["--transcriptome"] = record.reference_path
-
-    if ( record.tool_version[0].toInteger() < 4 ) {
-        options["--sample"] = record.prefixes.join(",")
-        options["--fastqs"] = record.fastq_paths.join(",")
-    } else {
-        options["--libraries"] = "${record.output_id}.csv"
-    }
 
     options["--expect-cells"] = record.n_cells ?: 6000
     options["--description"] = record.sample_name
@@ -70,6 +63,22 @@ def construct_gex_cli_options(record) {
     ) {
         options["--feature-ref"] = "${record.output_id}_feature_ref.csv"
         ref_content = create_feature_reference(record)
+    }
+
+    // As of cellranger 6, they don't encourage using the libraries option for
+    // gene expression only.  Therefore, condition its use on whether
+    // ref_content is empty or not
+    //
+    // Additionally, if 'lanes = []' is specified, we can use that here as well.
+    // 'Undetermined*.fastq.gz' should already be included in the `prefixes` here.
+    if ( ref_content == "" ) {
+        options["--sample"] = record.prefixes.join(",")
+        options["--fastqs"] = record.fastq_paths.join(",")
+        if ( record.get("lanes") && record.get("use_undetermined") ) {
+            options["--lanes"] = record.lanes.join(",")
+        }
+    } else {
+        options["--libraries"] = "${record.output_id}.csv"
     }
 
     return [join_map_items(options), ref_content]

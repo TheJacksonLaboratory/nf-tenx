@@ -50,7 +50,7 @@ def construct_cellplex_library_csv_content(record) {
     "[gene-expression]",
     "reference,${record.reference_path}",
     "expect-cells,${record.n_cells}",
-    //"include-introns,${record.is_nuclei}",
+    "include-introns,${record.is_nuclei}",
     "[libraries]", 
     "fastq_id,fastqs,feature_types"
   ]

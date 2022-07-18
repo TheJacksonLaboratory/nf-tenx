@@ -143,6 +143,15 @@ class AssayChecker:
                 f"Record {record_id} has an incompatiable tool version '{tv} < {self.min_tool_version}'"
             )
 
+        lanes = record.get("lanes", [])
+        include_undetermined = record.get("use_undetermined", False)
+        if include_undetermined and not lanes:
+            print_error(
+                f"Record {record_id} FASTQ specification includes"
+                "'use_undetermined: true' but does not include a flowcell lane using 'lanes = []'."
+                " This behavior is currently unsupported."
+            )
+
         self.check_fastqs_exist(record_id, record)
 
 
