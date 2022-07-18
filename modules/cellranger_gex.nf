@@ -10,12 +10,14 @@ def intronic_options(record, opts) {
     major_version = record.tool_version[0].toInteger()
 
     if (record.is_nuclei == true)  {
-        switch(major_version) {
+        switch (major_version) {
             case { it >= 7 }:
                 opts["--include-introns"] = true
+                break;
 
             case { ( it <= 7 ) && (it > 4) }:
                 opts["--include-introns"] = null
+                break;
 
             case { it < 4 }:
                 if (!(record.reference_path =~ /pre.*rna/)) {
@@ -24,6 +26,7 @@ def intronic_options(record, opts) {
                         and the reference path doesn't appear to be a pre-mrna reference
                     ''')
                 }
+                break;
         }
     } else {
         if (major_version >= 7) {
