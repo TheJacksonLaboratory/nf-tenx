@@ -49,7 +49,7 @@ process COUNT_READS {
     """
     arr=()
     for fq in $fastqs; do arr+=(\$(estFqReadCount -s 5 \$fq)); done
-    echo "\${arr/%/+}0" | bc > n_reads
+    echo "\${arr[@]/%/+}0" | bc > n_reads
     """
 }
 

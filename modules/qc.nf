@@ -11,7 +11,7 @@ process FASTQC {
 
     time { (record.n_reads / 300000000).round(2) * 4.hour * params.time_scale_factor }
     cpus 16
-    memory '5 GB'
+    memory '32 GB'
 
     container "library://singlecell/fastqc:0.11.9"
 
