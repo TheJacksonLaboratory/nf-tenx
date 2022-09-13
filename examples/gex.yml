@@ -1,0 +1,29 @@
+# Single GEX library
+# Defining useful shorthands with &VAR
+- libraries: [SC9900001]
+  library_types: [&GEX Gene Expression]
+  sample_name: tinygex
+  n_cells: 20000
+  is_nuclei: true
+  tool: cellranger
+  tool_version: 6.0.0
+  command: count
+  fastq_paths: [&FQP /sc/service/pipelines/test-data]
+  reference_path: &REF_GEX /sc/service/pipelines/test-data/test-refs/ref-cellranger
+
+# Generating 1 output from multiple libraries
+# Using shorthands defined above with *VAR
+- libraries: [SC9900002, SC9900003]
+  library_types: [*GEX, *GEX]
+  sample_name: tinygex
+  n_cells: 9000
+  is_nuclei: false
+  tool: cellranger
+  tool_version: 6.0.0
+  command: count
+  fastq_paths: [*FQP, *FQP]
+  reference_path: *REF_GEX
+
+# Abbreviated format
+- {libraries: [SC9900004], library_types: [*GEX], sample_name: sample3, n_cells: 2000, is_nuclei: false, tool: cellranger, tool_version: 6.1.0, command: count, fastq_paths: [*FQP], reference_path: *REF}
+
