@@ -17,8 +17,6 @@ Fully supported
 - Multiome (joint GEX & ATAC)
 - CITE-seq with Biolegend TotalSeq-A/B/C ADTs
 - Multiplexing with BioLegend TotalSeq-A/C HTOs
-
-In progress
 - Spatial Transcriptomics (Fresh frozen and FFPE)
 - Multiplexing with CellPlex
 
@@ -86,6 +84,8 @@ TotalSeq (to specify which tags/oligos are in use) or Visium to specify image
 and probeset paths.  For now, just look in `modules/assay-type.nf` to see what
 cli options are utilized.
 
+Check out the example samplesheets under the `examples` directory.
+
 ### Things not to do:
 -   No YAML multipage documents
 
@@ -112,6 +112,7 @@ cli options are utilized.
 | | 6.0.1 | |
 | | 6.0.2 | |
 | | 6.1.1 | |
+| | 7.0.0 | |
 | CellRanger ATAC | 1.1.0 | do not use, barcode doublet issue |
 | | 1.2.0 | |
 | | 2.0.0 | |
@@ -123,6 +124,7 @@ cli options are utilized.
 | | 1.2.0 | |
 | | 1.2.2 | |
 | | 1.3.0 | |
+| | 2.0.0 | |
 
 ## Testing
 

@@ -1,0 +1,2 @@
+- {libraries: [SC2200111], sample_name: my-gex-lib, library_types: [Gene Expression], tool: cellranger, tool_version: 6.1.2, command: count, is_nuclei: false, reference_path: /path/to/10x-rna/refdata-gex-GRCh38-2020-A, fastq_paths: [path/to/fastq/files], n_cells: 15000}
+- {libraries: [SC2200222], sample_name: my-hto-lib, library_types: [TotalSeq-A], tool: citeseq-count, tool_version: 1.4.5, command: , fastq_paths: [/path/to/fastq/files], tags: ["A0251", "A0252", "A0253", "A0254", "A0255", "A0256"], n_cells: 30000}
