@@ -71,7 +71,8 @@ def read_n_reads(LinkedHashMap record, f) {
 
 
 def construct_output_id(LinkedHashMap record) {
-    record["output_id"] = [record.libraries.join("-"), record.sample_name].join("_")
+    unique_libs = record.libraries.unique()
+    record["output_id"] = [unique_libs.join("-"), record.sample_name].join("_")
     return(record)
 }
 
