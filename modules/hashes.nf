@@ -9,6 +9,8 @@ process COMPUTE_FASTQ_HASHES {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*", mode: "copy"
 
+    time { (record.n_reads / 600000000).round(2) * 1.hour * params.time_scale_factor }
+
     input:
       val(record)
     output:
@@ -27,6 +29,8 @@ process COMPUTE_FASTQ_HASHES {
 process COMPUTE_PROCESSED_HASHES {
     tag "$record.output_id"
     publishDir "${params.pubdir}/${record.output_id}/${record.tool_pubdir}", pattern: "*", mode: "copy"
+
+    time { (record.n_reads / 600000000).round(2) * 1.hour * params.time_scale_factor }
 
     input:
       tuple val(record), path(hash_dir)
