@@ -26,7 +26,7 @@ def getProcessName(task_process) {
 
 
 def join_map_items(it) {
-  it.collect { it.value ? /$it.key="$it.value"/ : /$it.key/ } join " "
+  it.collect { it.value != null ? /$it.key="$it.value"/ : /$it.key/ } join " "
 }
 
 
