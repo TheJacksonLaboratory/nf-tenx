@@ -72,6 +72,15 @@ class AssayChecker:
             "reference_path",
         }
 
+        self.allowed_fields = {
+            "use_undetermined", "lanes",
+            "n_cells", "is_nuclei", 
+            "design",
+            "probe_set", "tags", 
+            "no_bam", 
+            "roi_json"
+        }
+
     def check_records(self, records):
         for k, record in enumerate(records, start=1):
             if record.get("tool", None) != self.tool:
@@ -103,6 +112,14 @@ class AssayChecker:
         if missing:
             print_error(
                 f"Record {record_id} missing required fields for assay {self.assay_type}: {missing}"
+            )
+
+        # check additional fields.
+        # this union is done here so that we can modify required fields in subclass inits
+        unknown_fields = record.keys() - self.required_fields.union(self.allowed_fields)
+        if unknown_fields:
+            print_error(
+                f"Record {record_id} has unknown fields: {unknown_fields}"
             )
 
         # check sample name
@@ -243,6 +260,13 @@ class GEXMultiChecker(AssayChecker):
         if cells is None:
             print_error(
                 f"Record {record_id} must have a 'n_cells' specification"
+            )
+
+        # is_nuclei key must be present
+        nuclei = record.get("is_nuclei", None)
+        if nuclei is None:
+            print_error(
+                f"Record {record_id} must have a 'is_nuclei' specification"
             )
 
         nongex_lib_types = set(self.allowed_library_types) - set(["Gene Expression", "Multiplexing Capture"])

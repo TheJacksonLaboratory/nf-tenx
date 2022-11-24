@@ -46,6 +46,13 @@ def construct_gex_cli_options(record) {
     options["--description"] = record.sample_name
     options["--disable-ui"] = null
 
+    // no bam
+    // --no-bam evaluates to true is present at all
+    major_version = record.tool_version[0].toInteger()
+    if ((record.no_bam) && (major_version >= 5)) {
+        options["--no-bam"] = null
+    }
+
     // need to be super careful here
     // --include-introns flag evaluates to true no matter what
     options = intronic_options(record, options)
