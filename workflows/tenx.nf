@@ -36,6 +36,9 @@ workflow TENX {
             vdj: (it.tool == "cellranger") && (it.command == "vdj")
             multi: (it.tool == "cellranger") && (it.command == "multi")
             visium: it.tool == "spaceranger"
+            gex_aggr: (it.tool == "cellranger") && (it.command == "aggr")
+            atac_aggr: (it.tool == "cellranger-atac") && (it.command == "aggr")
+            arc_aggr: (it.tool == "cellranger-arc") && (it.command == "aggr")
         }
 
     

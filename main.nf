@@ -13,6 +13,7 @@ nextflow.enable.dsl = 2
 */
 
 params.pubdir = params.getOrDefault("pubdir", "pubdir")
+params.publish_fastqs = params.getOrDefault("publish_fastqs", true)
 
 /*
 ========================================================================================

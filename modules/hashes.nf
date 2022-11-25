@@ -7,23 +7,29 @@ vim: syntax=groovy
 
 process COMPUTE_FASTQ_HASHES {
     tag "$record.output_id"
-    publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*.fastq.gz", mode: "move"
+    publishDir "${params.pubdir}/${record.output_id}/fastq", pattern: "*md5", mode: "copy"
 
     time { (record.n_reads / 600000000).round(2) * 1.hour * params.time_scale_factor }
 
     input:
       val(record)
     output:
-      path("*.fastq.gz")
+      path("*.fastq.gz"), optional: true
       path('hashes_fastq.md5')
       tuple val(record), path("*.md5"), emit: input_hashes
 
     script:
     files = record.fastqs.join(" ")
-    """
-    cp $files .
-    md5sum $files > hashes_fastq.md5
-    """
+    if(params.publish_fastqs)
+        """
+        cp $files .
+        md5sum $files > hashes_fastq.md5
+        """
+    else
+        """
+        md5sum $files > hashes_fastq.md5
+        """
 }
 
 process COMPUTE_PROCESSED_HASHES {
