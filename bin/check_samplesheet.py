@@ -79,7 +79,6 @@ class AssayChecker:
             "probe_set", "tags", 
             "no_bam", 
             "roi_json",
-            "feature_ref_type"
         }
 
     def check_records(self, records):
@@ -251,18 +250,6 @@ class GEXCountChecker(AssayChecker):
                     f"Record {record_id} has nonGEX library types but no tag list"
                 )
             self.check_tags_exist(record_id, record)
-
-        feature_ref_types = ["CellPlex","TotalSeq-A","TotalSeq-B","TotalSeq-C","LMO","CMO"]
-        if "Antibody Capture" in nongex_lib_types:
-            ref_type = record.get("feature_ref_type", None)
-            if not ref_type:
-                print_error(
-                    f"Record {record_id} is Antibody Capture, but no 'feature_ref_type' specified"
-                )
-            if ref_type not in feature_ref_types:
-                print_error(
-                    f"Record {record_id}: 'feature_ref_type' {ref_type} not in allowed ref types {feature_ref_types}"
-                )
 
         # if a probeset is specified, make sure it exists
         self.check_for_probeset(record_id, record)

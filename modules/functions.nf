@@ -103,15 +103,13 @@ def construct_flex_library_csv_content(record) {
 
 
 def create_feature_reference(record) {
-    content = []
-    offset = 0
-    feature_type = record.get("feature_ref_type")
+    content = ["id,name,read,pattern,sequence,feature_type"]
+    feature_type = record.get("feature_type")
     params.tag_list.eachLine { line ->
         def (tag_type, tag_id, read_num, offset5p, tag_sequence, tag_name, pattern) = line.split(",")
         //if (tag_type in record["library_types"] && tag_id in record["tags"]) {
         if (tag_id in record["tags"]) {
-            content.add("${tag_id},${tag_name},${read},${pattern},${tag_sequence},${feature_type}")
-            offset = offset5p
+            content.add("${tag_id},${tag_name},${read_num},${pattern},${tag_sequence},${feature_type}")
         }
     }
     return content.join("\n")

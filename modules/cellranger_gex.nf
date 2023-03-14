@@ -63,15 +63,13 @@ def construct_gex_cli_options(record) {
     //   If using TotalSeq-B Abs, you must specify the library as 'Antibody
     //   Capture' for feature barcoding to kick in
     //   Otherwise, you must list it as a separate library with tool cite-seq 
-    // must specify "tags" and "feature_ref_type" in record
     feature_ref_types = ["Custom", "Antibody Capture", "CRISPR Guide Capture"]
+    feature_intersection = record.library_types.intersect(feature_ref_types)
+    feature_type = feature_intersection.isEmpty() ? "" : feature_intersection[0]
     ref_content = ""
-    if (
-        (!record.libraries.intersect(feature_ref_types).isEmpty()) &&
-        (record.get("feature_ref_type", "") in feature_ref_types) &&
-        (!record.get("tags", []).isEmpty())
-    ) {
+    if ( (feature_type != "") && (!record.get("tags", []).isEmpty())) {
         options["--feature-ref"] = "${record.output_id}_feature_ref.csv"
+        record["feature_type"] = feature_type
         ref_content = create_feature_reference(record)
     }
 
