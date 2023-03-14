@@ -14,6 +14,10 @@ nextflow.enable.dsl = 2
 
 params.pubdir = params.getOrDefault("pubdir", "pubdir")
 params.publish_fastqs = params.getOrDefault("publish_fastqs", true)
+params.probe_dir = params.getOrDefault(
+    "probe_dir", 
+    "${workflow.projectDir}/assets/probe_sets"
+)
 
 /*
 ========================================================================================

@@ -7,8 +7,6 @@ vim: syntax=groovy
 include { join_map_items } from './functions.nf'
 
 
-params.probe_dir = "${workflow.projectDir}/assets/probe_sets"
-
 
 def construct_vis_cli_options(record) {
     options = [:]
