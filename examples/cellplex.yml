@@ -1,1 +1,16 @@
-- {libraries: [SC2200001, SC2200003], sample_name: CellPlex-Demo, library_types: [Gene Expression, Multiplexing Capture], tool: cellranger, tool_version: 6.1.2, command: multi, is_nuclei: false, n_cells: 20000, reference_path: /projects/mylab/references/10x-rna/refdata-gex-mm10-2020-A, fastq_paths: [/path/to/gex/fastqs, /path/to/plex/fastqs], design: { "CMO301": S1, "CMO302": S2, "CMO307": S3, "CMO308": S1, "CMO309": S3 } }
+- {
+    libraries: [SC2200001, SC2200003], 
+    sample_name: CellPlex-Demo, 
+    library_types: [Gene Expression, Multiplexing Capture], 
+    tool: cellranger, tool_version: 6.1.2, command: multi, 
+    is_nuclei: false, n_cells: 20000, 
+    reference_path: /projects/mylab/references/10x-rna/refdata-gex-mm10-2020-A, 
+    fastq_paths: [/path/to/gex/fastqs, /path/to/plex/fastqs], 
+    design: { 
+        "CMO301|CMO302": {name: S1, description: "sample type 1"}, 
+        "CMO303": {name: S2, description: "sample type 1"}, 
+        "CMO307": {name: S3, description: "sample type 2"},
+        "CMO308": {name: S3, description: "sample type 2"},
+        "CMO309": {name: S4, description: "sample type 2"} 
+     }
+}

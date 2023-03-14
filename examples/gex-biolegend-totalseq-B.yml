@@ -1,0 +1,14 @@
+# Using Cellranger rather than CiteSeqCount to count feature barcoded Abs.
+# Two additional keys:
+#   tags: list of tag IDs to look up tags in '$project_dir/assets/tags.csv'
+- {
+    libraries: [SC2200333, SC22004444], 
+    sample_name: gex-ab-lib, 
+    library_types: [Gene Expression, Antibody Capture], 
+    tool: cellranger, tool_version: 6.1.2, 
+    command: count, is_nuclei: false, 
+    reference_path: /path/to/10x-rna/refdata-gex-GRCh38-2020-A, 
+    fastq_paths: [path/to/gex/fastq/files, path/to/ab/fastq/files], 
+    n_cells: 15000,
+    tags: [B0864, B0871, B0896, B0897, B0902, B0918, B0920, B0944, B1046, B1052],
+}

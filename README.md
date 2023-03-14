@@ -86,9 +86,6 @@ cli options are utilized.
 
 Check out the example samplesheets under the `examples` directory.
 
-### Things not to do:
--   No YAML multipage documents
-
 ## Tools available on JAXReg
 **Updated 2021-12-02**
 
@@ -135,7 +132,7 @@ for all assays.
 To download this data (connected to JAX network):
 ```{bash}
 nextflow pull TheJacksonLaboratory/nf-tenx
-nextflow run -profile singularity,test nf-tenx/example.nf
+nextflow run -profile test nf-tenx/example.nf
 ```
 
 ## Contributing
