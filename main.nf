@@ -18,6 +18,11 @@ params.probe_dir = params.getOrDefault(
     "probe_dir", 
     "${workflow.projectDir}/assets/probe_sets"
 )
+params.tag_list = params.getOrDefault(
+    "tag_list",
+    file("${workflow.projectDir}/assets/tags.csv", checkIfExists: true)
+)
+
 
 /*
 ========================================================================================

@@ -7,9 +7,6 @@ vim: syntax=groovy
 include { join_map_items } from './functions.nf'
 
 
-params.tag_list = file("${workflow.projectDir}/assets/tags.csv", checkIfExists: true)
-
-
 def construct_citeseq_cli_options(record) {
     options = [:]
 
