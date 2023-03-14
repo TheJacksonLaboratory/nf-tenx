@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { construct_cellplex_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
+include { construct_cellplex_library_csv_content; construct_flex_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
 
 
 def construct_multi_cli_options(record) {
@@ -14,7 +14,11 @@ def construct_multi_cli_options(record) {
     options["--csv"] = "${record.output_id}.csv"
     options["--disable-ui"] = null
 
-    multi_content = construct_cellplex_library_csv_content(record)
+    if ("Multiplexing Capture" in record.library_types) {
+        multi_content = construct_cellplex_library_csv_content(record)
+    } else {
+        multi_content = construct_flex_library_csv_content(record)
+    }
 
     // handle feature barcoding here
     // --feature-ref
@@ -26,7 +30,7 @@ def construct_multi_cli_options(record) {
     feature_ref_types = ["Custom", "Antibody Capture", "CRISPR Guide Capture"]
     ref_content = ""
     if (
-        (!record.libraries.intersect(feature_ref_types).isEmpty()) &&
+        (!record.library_types.intersect(feature_ref_types).isEmpty()) &&
         (record.get("feature_ref_type", "") in feature_ref_types) &&
         (!record.get("tags", []).isEmpty())
     ) {
@@ -57,6 +61,7 @@ process CELLRANGER_MULTI {
     script:
     def (main_options, multiplex_content, feature_ref_content) = construct_multi_cli_options(record)
     def localmem = Math.round(task.memory.toGiga() * 0.95)
+    def is_flex = multiplex_content.contains('probe-set')
     """
     multi_csv_file=${record.output_id}.csv
     echo -e '$multiplex_content' > \$multi_csv_file
@@ -73,10 +78,20 @@ process CELLRANGER_MULTI {
     mv ${record.output_id}/_* ${record.tool_pubdir}/_files
     mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
     mv ${record.output_id}/outs/* ${record.tool_pubdir}/
+
+    # rearrangement
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
-    find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_contaminant_info.json" -exec mv {} ${record.tool_pubdir}/multi/tag_contaminant_info.json \\;
-    find ${record.output_id}/SC_MULTI_CS/ -type f -name "marginal_tag_call_metrics_json.json" -exec mv {} ${record.tool_pubdir}/multi/marginal_tag_calls.json \\;
-    find ${record.output_id}/SC_MULTI_CS/ -type f -name "non_tag_assignments.json" -exec mv {} ${record.tool_pubdir}/multi/non_tag_assignments.json \\;
-    find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_umi_thresholds_json.json" -exec mv {} ${record.tool_pubdir}/multi/tag_umi_thresholds.json \\;
+    if [ ${is_flex} ]; then
+        for sampledir in \$(find ${record.tool_pubdir}/cellranger-multi_frp/per_sample_outs/ -mindepth 1 -maxdepth 1 -type d); 
+        do 
+            find ${record.output_id}/SC_MULTI_CS/ -type f -name "*\$(basename \$sampledir)*summary.json" -exec \
+                mv {} ${record.tool_pubdir}/per_sample_outs/\${sampledir}/summary.json
+        done
+    else
+        find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_contaminant_info.json" -exec mv {} ${record.tool_pubdir}/multi/tag_contaminant_info.json \\;
+        find ${record.output_id}/SC_MULTI_CS/ -type f -name "marginal_tag_call_metrics_json.json" -exec mv {} ${record.tool_pubdir}/multi/marginal_tag_calls.json \\;
+        find ${record.output_id}/SC_MULTI_CS/ -type f -name "non_tag_assignments.json" -exec mv {} ${record.tool_pubdir}/multi/non_tag_assignments.json \\;
+        find ${record.output_id}/SC_MULTI_CS/ -type f -name "tag_umi_thresholds_json.json" -exec mv {} ${record.tool_pubdir}/multi/tag_umi_thresholds.json \\;
+    fi
     """
 }

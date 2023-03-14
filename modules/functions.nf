@@ -66,8 +66,37 @@ def construct_cellplex_library_csv_content(record) {
   }
 
   rows << "[samples]"
-  rows << "sample_id,cmo_ids"
-  record.design.each { cmos, sample -> rows.add("${sample},${cmos}") }
+  rows << "sample_id,cmo_ids,description"
+  record.design.each { cmos, info -> rows.add("${info.name},${cmos},${info.description}") }
+
+  return(rows.join("\n"))
+}
+
+
+def construct_flex_library_csv_content(record) {
+  probeset = file("${params.probe_dir}/${record.probe_set}", checkIfExists: true)
+  rows = [
+    "[gene-expression]",
+    "reference,${record.reference_path}",
+    "probe-set,${probeset.toString()}",
+    "no-bam,${record.no_bam ?: ''}",
+    "[libraries]", 
+    "fastq_id,fastqs,feature_types"
+  ]
+
+  nlibs = record.libraries.size()
+  nfqps = record.fastq_paths.size()
+  ntypes = record.library_types.size()
+  if ([nlibs, nfqps, ntypes].toSet().size() > 1) {
+    throw new Exception("Currently can't do unequal #libs, #fastq paths, #types")
+  }
+  for (i in 0..<nlibs) {
+    rows.add("${record.prefixes[i]},${record.fastq_paths[i]},${record.library_types[i]}")
+  }
+
+  rows << "[samples]"
+  rows << "sample_id,probe_barcode_ids,description"
+  record.design.each { pid, info -> rows.add("${info.name},${pid},${info.description}") }
 
   return(rows.join("\n"))
 }

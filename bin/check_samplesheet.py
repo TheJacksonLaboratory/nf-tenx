@@ -78,7 +78,8 @@ class AssayChecker:
             "design",
             "probe_set", "tags", 
             "no_bam", 
-            "roi_json"
+            "roi_json",
+            "feature_ref_type"
         }
 
     def check_records(self, records):
@@ -89,22 +90,20 @@ class AssayChecker:
                 continue
             self.check(k, record)
             self.additional_checks(k, record)
-
-    def check_fastqs_exist(self, record_id, record):
-        n = 0
-        for lib in record["libraries"]:
-            for fqp in record["fastq_paths"]:
-                fqp = Path(fqp)
-                if not fqp.exists():
-                    print_error(f"Record {record_id}: fastq path {fqp} doesn't exist!")
-                n += len(list(fqp.glob(f"{lib}*")))
-        if n < (2 * len(record["libraries"])):
-            print_error(
-                (
-                    "Record {record_id}: cannot find sufficient fastqs for libraries "
-                    f"{record['libraries']} under {record['fastq_paths']}"
+    
+    def check_for_probeset(self, record_id, record, add_msg=""):
+        probe_set = record.get("probe_set", None)
+        if probe_set is not None:
+            # hack so we can test without nextflow
+            probe_loc = ASSET_DIR / "probe_sets"
+            probe_set = probe_loc / probe_set
+            if not probe_set.exists():
+                print_error(
+                    "Record {record_id}: cannot find probe_set specified [{probe_set}] under {probe_loc}"
                 )
-            )
+        elif add_msg:
+            print_error(add_msg)
+
 
     def check(self, record_id, record):
         # fields, subclasses modify required fields as needed
@@ -187,6 +186,39 @@ class AssayChecker:
                 f"Record {record_id} has tag(s) we can't find in the catalog: '{missing_tags}'"
             )
 
+    def check_fastqs_exist(self, record_id, record):
+        n = 0
+        for lib in record["libraries"]:
+            for fqp in record["fastq_paths"]:
+                fqp = Path(fqp)
+                if not fqp.exists():
+                    print_error(f"Record {record_id}: fastq path {fqp} doesn't exist!")
+                n += len(list(fqp.glob(f"{lib}*")))
+        if n < (2 * len(record["libraries"])):
+            print_error(
+                (
+                    f"Record {record_id}: cannot find sufficient fastqs for libraries "
+                    f"{record['libraries']} under {record['fastq_paths']}"
+                )
+            )
+
+    def check_valid_design(self, record_id, record):
+        design = record.get("design", None)
+        if design is None:
+            print_error( f"Record {record_id}: 'design' key not specified")
+
+        for i, (bcs, data) in enumerate(design.items()):
+            if '.' in bcs:
+                print_error(
+                    f"Design barcodes cannot contain '.' (record: {record_id}, design item: {i})"
+                )
+            required_keys = set(["description", "name"])
+            if required_keys - set(data.keys()) != set():
+                print_error(
+                    f"Each element in 'design' must specify 'description' and 'name'. "
+                    f"Record {record_id}, item {i}: does not."
+                )
+
     def additional_checks(self, record_id, record):
         pass
 
@@ -220,6 +252,21 @@ class GEXCountChecker(AssayChecker):
                 )
             self.check_tags_exist(record_id, record)
 
+        feature_ref_types = ["CellPlex","TotalSeq-A","TotalSeq-B","TotalSeq-C","LMO","CMO"]
+        if "Antibody Capture" in nongex_lib_types:
+            ref_type = record.get("feature_ref_type", None)
+            if not ref_type:
+                print_error(
+                    f"Record {record_id} is Antibody Capture, but no 'feature_ref_type' specified"
+                )
+            if ref_type not in feature_ref_types:
+                print_error(
+                    f"Record {record_id}: 'feature_ref_type' {ref_type} not in allowed ref types {feature_ref_types}"
+                )
+
+        # if a probeset is specified, make sure it exists
+        self.check_for_probeset(record_id, record)
+
 
 class GEXMultiChecker(AssayChecker):
     def __init__(self):
@@ -240,34 +287,33 @@ class GEXMultiChecker(AssayChecker):
             ],
         )
 
-
     def additional_checks(self, record_id, record):
+        # Differentiate between cellplex and flex here:
         types = ["Multiplexing Capture", "LMO", "TotalSeq-A", "TotalSeq-B", "TotalSeq-C"]
         if set(types) & set(record["library_types"]) == set():
-            print_error(
-                f"Record {record_id} must have one of the following library types: '{types}'"
+            # We must have a probeset then
+            extra_error = (
+                f"Record {record_id} must either specify a 'probe_set' or "
+                f"have one of the following library types: '{types}'"
             )
+            self.check_for_probeset(record_id, record, add_msg=extra_error)
+        else:
+            # n_cells key must be present
+            cells = record.get("n_cells", None)
+            if cells is None:
+                print_error(
+                    f"Record {record_id} must have a 'n_cells' specification"
+                )
+
+            # is_nuclei key must be present
+            nuclei = record.get("is_nuclei", None)
+            if nuclei is None:
+                print_error(
+                    f"Record {record_id} must have a 'is_nuclei' specification"
+                )
 
         # design key must be present
-        design = record.get("design", None)
-        if design is None:
-            print_error(
-                f"Record {record_id} must have a 'design' specification"
-            )
-
-        # n_cells key must be present
-        cells = record.get("n_cells", None)
-        if cells is None:
-            print_error(
-                f"Record {record_id} must have a 'n_cells' specification"
-            )
-
-        # is_nuclei key must be present
-        nuclei = record.get("is_nuclei", None)
-        if nuclei is None:
-            print_error(
-                f"Record {record_id} must have a 'is_nuclei' specification"
-            )
+        self.check_valid_design(record_id, record)
 
         nongex_lib_types = set(self.allowed_library_types) - set(["Gene Expression", "Multiplexing Capture"])
         has_nongex_libs = nongex_lib_types & set(record["library_types"])
@@ -278,7 +324,6 @@ class GEXMultiChecker(AssayChecker):
                     f"Record {record_id} has nonGEX library types but no tag list or design"
                 )
             self.check_tags_exist(record_id, record)
-        
         
 
 
@@ -337,15 +382,7 @@ class VISCountChecker(AssayChecker):
             print_error(f"Record {record_id}: image {record['image']} does not exist")
 
         # FFPE
-        probe_set = record.get("probe_set", None)
-        if probe_set is not None:
-            # hack so we can test without nextflow
-            probe_loc = ASSET_DIR / "probe_sets"
-            probe_set = probe_loc / probe_set
-            if not probe_set.exists():
-                print_error(
-                    "Record {record_id}: cannot find probe_set specified [{probe_set}] under {probe_loc}"
-                )
+        self.check_for_probeset(record_id, record)
 
 
 class CITESeqChecker(AssayChecker):
@@ -369,7 +406,9 @@ def check_samplesheet(samplesheet):
     try:
         with open(samplesheet, "r") as fin:
             records = load(fin, Loader=Loader)
+        print("INFO: YAML parsed successfully")
     except yaml.composer.ComposerError as e:
+        print("ERROR: YAML cannot be parsed. See errors below")
         print_error(e)
 
     checkers = [
