@@ -79,6 +79,7 @@ class AssayChecker:
             "probe_set", "tags", 
             "no_bam", 
             "roi_json",
+            "cyta_image"
         }
 
     def check_records(self, records):
@@ -90,19 +91,6 @@ class AssayChecker:
             self.check(k, record)
             self.additional_checks(k, record)
     
-    def check_for_probeset(self, record_id, record, add_msg=""):
-        probe_set = record.get("probe_set", None)
-        if probe_set is not None:
-            # hack so we can test without nextflow
-            probe_loc = ASSET_DIR / "probe_sets"
-            probe_set = probe_loc / probe_set
-            if not probe_set.exists():
-                print_error(
-                    "Record {record_id}: cannot find probe_set specified [{probe_set}] under {probe_loc}"
-                )
-        elif add_msg:
-            print_error(add_msg)
-
 
     def check(self, record_id, record):
         # fields, subclasses modify required fields as needed
@@ -168,6 +156,7 @@ class AssayChecker:
             )
 
         self.check_fastqs_exist(record_id, record)
+        self.check_reference_exists(record_id, record)
 
 
     def check_tags_exist(self, record_id, record):
@@ -201,6 +190,15 @@ class AssayChecker:
                 )
             )
 
+    def check_reference_exists(self, record_id, record):
+        ref_path = record.get("reference_path", None)
+        if ref_path is None:
+            return
+
+        ref_path = Path(ref_path)
+        if not ref_path.exists():
+            print_error(f"Record {record_id}: reference path {ref_path} doesn't exist!")
+
     def check_valid_design(self, record_id, record):
         design = record.get("design", None)
         if design is None:
@@ -217,6 +215,20 @@ class AssayChecker:
                     f"Each element in 'design' must specify 'description' and 'name'. "
                     f"Record {record_id}, item {i}: does not."
                 )
+
+    def check_for_probeset(self, record_id, record, add_msg=""):
+        probe_set = record.get("probe_set", None)
+        if probe_set is not None:
+            # hack so we can test without nextflow
+            probe_loc = ASSET_DIR / "probe_sets"
+            probe_set = probe_loc / probe_set
+            if not probe_set.exists():
+                print_error(
+                    f"Record {record_id}: cannot find probe_set specified [{probe_set}] under {probe_loc}"
+                )
+        elif add_msg:
+            print_error(add_msg)
+
 
     def additional_checks(self, record_id, record):
         pass
@@ -358,7 +370,7 @@ class ARCCountChecker(AssayChecker):
 class VISCountChecker(AssayChecker):
     def __init__(self):
         super().__init__(
-            "Visium", "spaceranger", "count", ["Spatial Gene Expression"]
+            "Visium", "spaceranger", "count", ["Spatial Gene Expression", "CytAssist Gene Expression"]
         )
         for key in ("slide", "area", "image"):
             self.required_fields.add(key)
@@ -367,6 +379,16 @@ class VISCountChecker(AssayChecker):
         image_path = record.get("image", None)
         if not Path(image_path).exists():
             print_error(f"Record {record_id}: image {record['image']} does not exist")
+
+        # CytAssist
+        cytaimage_path = record.get("cyta_image", None)
+        if "CytAssist" in self.assay_type:
+            if not cytaimage_path:
+                print_error(f"Record {record_id}: CytAssisted assay must have 'cyta_image' key!")
+            if not Path(cytaimage_path).exists():
+                print_error(f"Record {record_id}: cyta_image {record['cyta_image']} does not exist")
+        elif cytaimage_Path is not None:
+            print_error(f"Record {record_id}: non-CytAssisted assay cannot have 'cyta_image' key!")
 
         # FFPE
         self.check_for_probeset(record_id, record)

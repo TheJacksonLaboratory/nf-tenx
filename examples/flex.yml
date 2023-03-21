@@ -2,15 +2,15 @@
     libraries: [SC2200008], 
     sample_name: Flex-Demo, 
     library_types: [Gene Expression], 
-    tool: cellranger, tool_version: 6.1.2, command: count, 
-    probe_set: assets/probe_sets/1.0/Chromium_Human_Transcriptome_Probe_Set_v1.0.1_GRCh38-2020-A.csv
+    tool: cellranger, tool_version: 7.0.0, command: multi, 
+    probe_set: 1.0/Chromium_Human_Transcriptome_Probe_Set_v1.0.1_mm10-2020-A.csv,
     reference_path: /projects/mylab/references/10x-rna/refdata-gex-mm10-2020-A, 
     fastq_paths: [/path/to/gex/fastqs], 
     design: { 
-      "CMO301|CMO302": {name: S1, description: "sample type 1"}, 
-      "CMO303": {name: S2, description: "sample type 1"}, 
-      "CMO307": {name: S3, description: "sample type 2"},
-      "CMO308": {name: S3, description: "sample type 2"},
-      "CMO309": {name: S4, description: "sample type 2"} 
+      "BC0001|BC0002": {name: S1, description: "sample type 1"}, 
+      "BC0003": {name: S2, description: "sample type 1"}, 
+      "BC0004": {name: S3, description: "sample type 2"},
+      "BC0005": {name: S3, description: "sample type 2"},
+      "BC0006": {name: S4, description: "sample type 2"} 
      }
 }

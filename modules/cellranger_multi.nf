@@ -82,7 +82,7 @@ process CELLRANGER_MULTI {
     # rearrangement
     find ${record.output_id}/SC_MULTI_CS/ -type f -name "*_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     if [ ${is_flex} ]; then
-        for sampledir in \$(find ${record.tool_pubdir}/cellranger-multi_frp/per_sample_outs/ -mindepth 1 -maxdepth 1 -type d); 
+        for sampledir in \$(find ${record.tool_pubdir}/cellranger-multi/per_sample_outs/ -mindepth 1 -maxdepth 1 -type d); 
         do 
             find ${record.output_id}/SC_MULTI_CS/ -type f -name "*\$(basename \$sampledir)*summary.json" -exec \
                 mv {} ${record.tool_pubdir}/per_sample_outs/\${sampledir}/summary.json
