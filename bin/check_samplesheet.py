@@ -382,12 +382,13 @@ class VISCountChecker(AssayChecker):
 
         # CytAssist
         cytaimage_path = record.get("cyta_image", None)
-        if "CytAssist" in self.assay_type:
+        is_cyta = all(["CytAssist" in lib_type for lib_type in record.get("library_types")])
+        if is_cyta:
             if not cytaimage_path:
                 print_error(f"Record {record_id}: CytAssisted assay must have 'cyta_image' key!")
             if not Path(cytaimage_path).exists():
                 print_error(f"Record {record_id}: cyta_image {record['cyta_image']} does not exist")
-        elif cytaimage_Path is not None:
+        elif cytaimage_path is not None:
             print_error(f"Record {record_id}: non-CytAssisted assay cannot have 'cyta_image' key!")
 
         # FFPE

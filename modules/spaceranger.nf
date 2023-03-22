@@ -24,6 +24,7 @@ def construct_vis_cli_options(record) {
         options["--probe-set"] = file("${params.probe_dir}/${record.probe_set}", checkIfExists: true)
     }
 
+    if (record.cyta_image) { options["--cytaimage"] = record.cyta_image }
     if (record.dark_image) { options["--darkimage"] = record.dark_image }
     if (record.color_image) { options["--colorizedimage"] = record.color_image }
     if (record.manual_alignment) { options["--loupe-alignment"] = record.manual_alignment }
