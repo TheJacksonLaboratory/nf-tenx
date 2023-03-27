@@ -2,6 +2,7 @@
 
 import os
 import sys
+import logging
 import argparse
 from pathlib import Path
 from string import ascii_letters
@@ -15,6 +16,9 @@ except ImportError:
     from yaml import Loader, Dumper
 
 
+logging.basicConfig(format="{levelname}: {message}", level=logging.INFO, style="{")
+
+
 ASSET_DIR = Path(__file__).parent.absolute() / ".." / "assets"
 
 
@@ -25,14 +29,15 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc, epilog=epilog)
     parser.add_argument("samplesheet", type=Path, help="Input samplesheet file")
     parser.add_argument("outsheet", type=Path, help="Output samplesheet file")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Extra logging for use outside pipeline")
     return parser.parse_args()
 
 
-def print_error(error, context="Line", context_str=""):
-    error_str = f"ERROR: Please check samplesheet -> {error}"
+def print_error(record_id, error, context="Line", context_str=""):
+    error_str = f"Samplesheet record {record_id} -> {error}"
     if context != "" and context_str != "":
-        error_str = f"ERROR: Please check samplesheet -> {error}\n{context.strip()}: '{context_str.strip()}'"
-    print(error_str)
+        error_str = f"Samplesheet record {record_id} -> {error}\n{context.strip()}: '{context_str.strip()}'"
+    logging.error(error_str)
     sys.exit(1)
 
 
@@ -74,13 +79,35 @@ class AssayChecker:
 
         self.allowed_fields = {
             "use_undetermined", "lanes",
-            "n_cells", "is_nuclei", 
+            "n_cells", 
+            "is_nuclei", 
             "design",
-            "probe_set", "tags", 
+            "probe_set", 
+            "tags", 
             "no_bam", 
-            "roi_json",
-            "cyta_image"
         }
+
+    def check_mutually_exclusive_fields(self, record_id, record, keys1, keys2):
+        has_keys1 = any([record.get(key, None) for key in keys1])
+        has_keys2 = any([record.get(key, None) for key in keys2])
+        if has_keys1 and has_keys2:
+            print_error(record_id, f"Keys '{','.join(keys1)}' and '{','.join(keys2)}' are mutually exclusive.")
+
+    def check_needed_field(self, record_id, record, key, is_file=False):
+        field = record.get(key, None)
+        if not field:
+            print_error(record_id, f"Specified assay '{'-'.join(record.get('library_types'))}' must have key '{key}'!")
+        if is_file and (not Path(field).exists()):
+            print_error(record_id, f"Specified file '{key}'='{field}' does not exist!")
+        return field
+
+
+    def check_unneeded_field(self, record_id, record, key, is_file=False):
+        field = record.get(key, None)
+        if field:
+            print_error(record_id, f"Specified assay '{'-'.join(record.get('library_types'))}' cannot have key '{key}'!")
+        return field
+
 
     def check_records(self, records):
         for k, record in enumerate(records, start=1):
@@ -97,7 +124,8 @@ class AssayChecker:
         missing = self.required_fields - record.keys()
         if missing:
             print_error(
-                f"Record {record_id} missing required fields for assay {self.assay_type}: {missing}"
+                record_id, 
+                f"Record missing required fields for assay {self.assay_type}: {missing}"
             )
 
         # check additional fields.
@@ -105,7 +133,8 @@ class AssayChecker:
         unknown_fields = record.keys() - self.required_fields.union(self.allowed_fields)
         if unknown_fields:
             print_error(
-                f"Record {record_id} has unknown fields: {unknown_fields}"
+                record_id,
+                f"Record has unknown fields: {unknown_fields}"
             )
 
         # check sample name
@@ -116,11 +145,12 @@ class AssayChecker:
         illegal_characters = set(sample_name) - allowed_characters
         if len(illegal_characters) > 0:
             print_error(
-                f"Record {record_id} illegal characters in sample name: {illegal_characters}"
+                record_id,
+                f"Illegal characters in record sample name: {illegal_characters}"
             )
 
         if len(sample_name) > 48:
-            print_error(f"Record {record_id} sample name too long: {sample_name}")
+            print_error(record_id, f"Record sample name too long: {sample_name}")
 
         # library types are allowed
         lts = [
@@ -128,7 +158,8 @@ class AssayChecker:
         ]
         if not all(lts):
             print_error(
-                f"Record {record_id} has invalid library types. Expected {self.allowed_library_types}",
+                record_id,
+                f"Record has invalid library types. Expected {self.allowed_library_types}",
             )
 
         if not (
@@ -137,21 +168,24 @@ class AssayChecker:
             == len(record.get("fastq_paths", []))
         ):
             print_error(
-                f"Record {record_id} has inconsistent number of libraries, library_types, and fastq_paths"
+                record_id,
+                f"Inconsistent number of libraries, library_types, and fastq_paths"
             )
 
         tv = record.get("tool_version") 
         if tv < self.min_tool_version:
             print_error(
-                f"Record {record_id} has an incompatiable tool version '{tv} < {self.min_tool_version}'"
+                record_id,
+                f"Incompatiable tool version '{tv} < {self.min_tool_version}'"
             )
 
         lanes = record.get("lanes", [])
         include_undetermined = record.get("use_undetermined", False)
         if include_undetermined and not lanes:
             print_error(
-                f"Record {record_id} FASTQ specification includes"
-                "'use_undetermined: true' but does not include a flowcell lane using 'lanes = []'."
+                record_id,
+                "FASTQ specification includes 'use_undetermined: true' "
+                "but does not include a flowcell lane using 'lanes = []'."
                 " This behavior is currently unsupported."
             )
 
@@ -171,7 +205,8 @@ class AssayChecker:
         missing_tags = set(record["tags"]) - set(tag_catalog.keys())
         if len(missing_tags) > 0:
             print_error(
-                f"Record {record_id} has tag(s) we can't find in the catalog: '{missing_tags}'"
+                record_id,
+                f"Record specifies tag(s) we can't find in the catalog: '{missing_tags}'"
             )
 
     def check_fastqs_exist(self, record_id, record):
@@ -180,12 +215,12 @@ class AssayChecker:
             for fqp in record["fastq_paths"]:
                 fqp = Path(fqp)
                 if not fqp.exists():
-                    print_error(f"Record {record_id}: fastq path {fqp} doesn't exist!")
+                    print_error(record_id, f"Fastq path {fqp} doesn't exist!")
                 n += len(list(fqp.glob(f"{lib}*")))
         if n < (2 * len(record["libraries"])):
-            print_error(
+            print_error(record_id,
                 (
-                    f"Record {record_id}: cannot find sufficient fastqs for libraries "
+                    f"Cannot find sufficient fastqs for libraries "
                     f"{record['libraries']} under {record['fastq_paths']}"
                 )
             )
@@ -194,26 +229,23 @@ class AssayChecker:
         ref_path = record.get("reference_path", None)
         if ref_path is None:
             return
-
-        ref_path = Path(ref_path)
-        if not ref_path.exists():
-            print_error(f"Record {record_id}: reference path {ref_path} doesn't exist!")
+        self.check_needed_field(record_id, record, "reference_path", is_file=True)
 
     def check_valid_design(self, record_id, record):
-        design = record.get("design", None)
-        if design is None:
-            print_error( f"Record {record_id}: 'design' key not specified")
+        design = self.check_needed_field(record_id, record, "design")
 
         for i, (bcs, data) in enumerate(design.items()):
             if '.' in bcs:
                 print_error(
-                    f"Design barcodes cannot contain '.' (record: {record_id}, design item: {i})"
+                    record_id,
+                    f"Design barcodes cannot contain '.' (design item: {i})"
                 )
             required_keys = set(["description", "name"])
             if required_keys - set(data.keys()) != set():
                 print_error(
-                    f"Each element in 'design' must specify 'description' and 'name'. "
-                    f"Record {record_id}, item {i}: does not."
+                    record_id,
+                    "Each element in 'design' must specify 'description' and 'name'. "
+                    f"Item {i}: does not."
                 )
 
     def check_for_probeset(self, record_id, record, add_msg=""):
@@ -224,7 +256,8 @@ class AssayChecker:
             probe_set = probe_loc / probe_set
             if not probe_set.exists():
                 print_error(
-                    f"Record {record_id}: cannot find probe_set specified [{probe_set}] under {probe_loc}"
+                    record_id,
+                    f"Cannot find probe_set specified [{probe_set}] under {probe_loc}"
                 )
         elif add_msg:
             print_error(add_msg)
@@ -259,7 +292,8 @@ class GEXCountChecker(AssayChecker):
             tag_list = record.get("tags", None)
             if not tag_list:
                 print_error(
-                    f"Record {record_id} has nonGEX library types but no tag list"
+                    record_id,
+                    f"NonGEX library types but no tag list"
                 )
             self.check_tags_exist(record_id, record)
 
@@ -300,16 +334,12 @@ class GEXMultiChecker(AssayChecker):
             # n_cells key must be present
             cells = record.get("n_cells", None)
             if cells is None:
-                print_error(
-                    f"Record {record_id} must have a 'n_cells' specification"
-                )
+                print_error(record_id, f"Must specify 'n_cells'.")
 
             # is_nuclei key must be present
             nuclei = record.get("is_nuclei", None)
             if nuclei is None:
-                print_error(
-                    f"Record {record_id} must have a 'is_nuclei' specification"
-                )
+                print_error(record_id, f"Must specify 'is_nuclei'.")
 
         # design key must be present
         self.check_valid_design(record_id, record)
@@ -320,7 +350,8 @@ class GEXMultiChecker(AssayChecker):
             tag_list = record.get("tags", None)
             if not tag_list:
                 print_error(
-                    f"Record {record_id} has nonGEX library types but no tag list or design"
+                    record_id,
+                    f"NonGEX library types but no tag list or design"
                 )
             self.check_tags_exist(record_id, record)
         
@@ -345,7 +376,8 @@ class ATACCountChecker(AssayChecker):
     def additional_checks(self, record_id, record):
         if record["tool_version"][:3] in ["1.0", "1.1"]:
             print_error(
-                f"Record {record_id}: CellRanger-ATAC version < 1.2.0 is not recommended.  Use at least 1.2.0"
+                record_id,
+                f"CellRanger-ATAC version < 1.2.0 is not recommended.  Use at least 1.2.0"
             )
 
 
@@ -363,7 +395,8 @@ class ARCCountChecker(AssayChecker):
         has_both_lib_types = len(set(record["library_types"])) == 2
         if not has_both_lib_types:
             print_error(
-                f"Record {record_id} needs to have both library types: {self.allowed_library_types}"
+                record_id,
+                f"Must specify both library types: {self.allowed_library_types}"
             )
 
 
@@ -372,24 +405,27 @@ class VISCountChecker(AssayChecker):
         super().__init__(
             "Visium", "spaceranger", "count", ["Spatial Gene Expression", "CytAssist Gene Expression"]
         )
-        for key in ("slide", "area", "image"):
+        for key in ("image", ):
             self.required_fields.add(key)
+        for key in (
+            "slide", "area", 
+            "cyta_image", "dark_image", "color_image", "manual_alignment",
+            "slide_file", "requires_rotation", "roi_json"
+        ):
+            self.allowed_fields.add(key)
 
     def additional_checks(self, record_id, record):
-        image_path = record.get("image", None)
-        if not Path(image_path).exists():
-            print_error(f"Record {record_id}: image {record['image']} does not exist")
+        image_path = self.check_needed_field(record_id, record, "image", is_file=True)
+        self.check_needed_field(record_id, record, "slide")
+        self.check_needed_field(record_id, record, "area")
 
         # CytAssist
         cytaimage_path = record.get("cyta_image", None)
         is_cyta = all(["CytAssist" in lib_type for lib_type in record.get("library_types")])
         if is_cyta:
-            if not cytaimage_path:
-                print_error(f"Record {record_id}: CytAssisted assay must have 'cyta_image' key!")
-            if not Path(cytaimage_path).exists():
-                print_error(f"Record {record_id}: cyta_image {record['cyta_image']} does not exist")
-        elif cytaimage_path is not None:
-            print_error(f"Record {record_id}: non-CytAssisted assay cannot have 'cyta_image' key!")
+            self.check_needed_field(record_id, record, "cyta_image", is_file=True)
+        else:
+            self.check_unneeded_field(record_id, record, "cyta_image")
 
         # FFPE
         self.check_for_probeset(record_id, record)
@@ -416,10 +452,10 @@ def check_samplesheet(samplesheet):
     try:
         with open(samplesheet, "r") as fin:
             records = load(fin, Loader=Loader)
-        print("INFO: YAML parsed successfully")
+        logging.debug("YAML parsed successfully")
     except yaml.composer.ComposerError as e:
-        print("ERROR: YAML cannot be parsed. See errors below")
-        print_error(e)
+        logging.error("YAML cannot be parsed. See errors below.")
+        logging.error(e)
 
     checkers = [
         GEXCountChecker(),
@@ -438,8 +474,11 @@ def check_samplesheet(samplesheet):
 
 def main():
     args = parse_args()
+    if args.verbose:
+        logging.setLevel(logging.DEBUG)
+
     records = check_samplesheet(args.samplesheet)
-    print("\tSamplesheet passed all checks.")
+    logging.info("Samplesheet passed all checks.")
     with open(args.outsheet, "w") as fout:
         dump(records, fout, Dumper=Dumper)
 
