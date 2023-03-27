@@ -89,6 +89,21 @@ process IMAGE_PROCESS {
     if [ ! -z "${record.roi_json}" ]; then
         cp ${record.roi_json} .
     fi
+    if [ ! -z "${record.cyta_image}" ]; then
+        cp ${record.cyta_image} .
+    fi
+    if [ ! -z "${record.dark_image}" ]; then
+        cp ${record.dark_image} .
+    fi
+    if [ ! -z "${record.color_image}" ]; then
+        cp ${record.color_image} .
+    fi
+    if [ ! -z "${record.slide_file}" ]; then
+        cp ${record.slide_file} .
+    fi
+    if [ ! -z "${record.manual_alignment}" ]; then
+        cp ${record.manual_alignment} .
+    fi
     md5sum * > hashes_img.md5
     """
 }
