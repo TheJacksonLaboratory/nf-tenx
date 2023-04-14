@@ -23,7 +23,7 @@ params.tag_list = params.getOrDefault(
     "tag_list",
     file(params.assets_dir / "tags.csv", checkIfExists: true)
 )
-params.gene_annotations_ref_dir = params.getOrDefault(
+params.gene_annotations_dir = params.getOrDefault(
     "gene_annotations",
     params.assets_dir / "gene_annotations"
 )
@@ -31,6 +31,7 @@ params.annotation_info_dir = params.getOrDefault(
     "annotation_info",
     params.assets_dir / "annotation_info"
 )
+params.calc_rna_velo = ""
 
 
 /*

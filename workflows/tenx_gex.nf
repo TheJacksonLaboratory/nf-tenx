@@ -9,7 +9,8 @@ include { CELLRANGER_COUNT } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
-include { GET_SPECIES_AND_GENES_GTF } from '../modules/species_genes_gtf.nf'
+include { GET_ANNOTATIONS_AND_GENES_GTF } from '../modules/annotations_genes_gtf.nf'
+include { ANNOTATE_MATRIX } from '../modules/annotate.nf'
 
 
 workflow TENX_GEX {
@@ -20,7 +21,8 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    GET_SPECIES_AND_GENES_GTF(gex_records)
+    GET_ANNOTATIONS_AND_GENES_GTF(gex_records)
+    ANNOTATE_MATRIX(CELLRANGER_COUNT.out.cellranger_outputs, GET_ANNOTATIONS_AND_GENES_GTF.out.gene_annotations_paths)
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 
     hash_input = CELLRANGER_COUNT.out.cellranger_outputs
