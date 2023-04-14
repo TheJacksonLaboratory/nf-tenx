@@ -1,0 +1,6 @@
+<code><a href="https://support.10xgenomics.com/single-cell-gene-expression/software/pipelines/latest/using/count">cellranger count</a></code>
+<code><a href='https://scanpy.readthedocs.io/en/stable/index.html'>scanpy</a></code>
+<code><a href='https://github.com/swolock/scrublet'>scrublet</a></code>
+<code><a href="https://jinja.palletsprojects.com/en/3.1.x/">jinja2</a></code>
+<code><a href="https://pandas.pydata.org/">pandas</a></code>
+<code><a href="https://numpy.org/">numpy</a></code>
