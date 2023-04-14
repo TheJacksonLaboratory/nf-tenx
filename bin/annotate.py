@@ -7,7 +7,7 @@ from pathlib import Path
 import scrublet as scr
 
 parser = ArgumentParser()
-parser.add_argument('--ref_df_paths', '-r', nargs='+', type=Path, required=True)
+parser.add_argument('--ref_df_paths', '-r', nargs='*', type=Path, required=True)
 args = parser.parse_args()
 
 filt_mat_paths = list(Path('.').glob('*filtered*matrix*.h5'))
