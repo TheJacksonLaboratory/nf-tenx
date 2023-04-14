@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 from pathlib import Path
-# Random comment
+
 import pandas as pd
 import scanpy as sc
 import scrublet as scr
@@ -29,7 +29,7 @@ for df_path in args.ref_df_paths:
     # The boolean columns of the reference dataframes are the gene
     # annotations, so get them with generator comprehension
     gene_types = (col for col in ref_df.columns if ref_df[col].dtype == bool)
-    
+
     # Iterate over each gene type, creating a column in adata for each
     # that stores a boolean for whether the gene is of that type or not
     for gene_type in gene_types:
@@ -38,8 +38,8 @@ for df_path in args.ref_df_paths:
             .str.upper()  # Convert gene IDs to uppercase
             .isin(ref_df.loc[ref_df[gene_type], 'ensembl_gene_id'])
         )  # If the gene ID matches those in the gene type column of
-           # the reference dataframe, mark the gene as true for that
-           # gene type
+        # the reference dataframe, mark the gene as true for that
+        # gene type
 
 # Make genes/cells names unique
 adata.var_names_make_unique()
