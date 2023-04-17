@@ -12,7 +12,9 @@ velo = '.loom'
 ref_data = '.pickle'
 
 # Define a dictionary of readers for each extension and a dictionary to store the items read
-readers = {main_mat: sc.read_10x_h5, velo: sc.read_loom, ref_data: pd.read_pickle}
+readers = {main_mat: sc.read_10x_h5,
+           velo: sc.read_loom,
+           ref_data: pd.read_pickle}
 
 # Using dictionary comprehension, read each file in. If the file extension is .pickle, there might be more than one, so store them as a list
 mat_by_ext = {
@@ -54,7 +56,8 @@ adata.obs_names_make_unique()
 annotated_gene_types = [
     col for col in adata.var.columns if adata.var[col].dtype == bool
 ]
-sc.pp.calculate_qc_metrics(adata=adata, qc_vars=annotated_gene_types, inplace=True)
+sc.pp.calculate_qc_metrics(
+    adata=adata, qc_vars=annotated_gene_types, inplace=True)
 
 # Calculate predicted doublets and doublet scores
 scrub = scr.Scrublet(adata.X)
