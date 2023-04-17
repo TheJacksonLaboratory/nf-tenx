@@ -24,7 +24,8 @@ with (output_dir / Path('found_genomes.txt')).open('w') as f:
         f.write(f'{actual_path.stem}\n')
         Path(actual_path.name).symlink_to(actual_path)
 
-# Look in each directory for the relevant files and ensure there is only one. If so, symlink to it to expose it to the rest of the pipeline
+# Look in each directory for the relevant files and ensure there is only one.
+# If so, symlink to it to expose it to the rest of the pipeline
 dir_to_pattern = {Path.cwd(): '*filtered*matrix*.h5',
                   args.ref_genome_dir: '*genes*.gtf'}
 for direc, pattern in dir_to_pattern.items():

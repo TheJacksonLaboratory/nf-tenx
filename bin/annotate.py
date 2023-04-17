@@ -16,7 +16,7 @@ readers = {main_mat: sc.read_10x_h5,
            velo: sc.read_loom,
            ref_data: pd.read_pickle}
 
-# Using dictionary comprehension, read each file in. If the file extension is .pickle, there might be more than one, so store them as a list
+# Read files into a dict of lists using dict-comprehension
 mat_by_ext = {
     ext: [reader(path) for path in Path.cwd().glob(f'**/*{ext}')]
     for ext, reader in readers.items()
