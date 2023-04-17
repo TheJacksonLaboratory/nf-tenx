@@ -1,16 +1,39 @@
-process ANNOTATE_MATRIX {
-  executor 'local'
-  publishDir params.pubdir
+#!/usr/bin/env nextflow
+/*
+vim: syntax=groovy
+-*- mode: groovy;-*-
+*/
 
-  input:
-  tuple val(record), path('*')
-  path ref_df_paths
+process ANNOTATE_WITH_VELO {
+    tag "$record.output_id"
+    executor 'local'
+    publishDir params.pubdir
 
-  output:
-  path '*final*anndata*.h5ad'
+    input:
+    tuple val(record), path('*'), path('*')
+  
+    output:
+    tuple val(record), path('*final*anndata*.h5ad')
 
-  script:
-  """
-  annotate.py --ref_df_paths $ref_df_paths
-  """
+    script:
+    """
+    annotate.py
+    """
+}
+
+process ANNOTATE_NO_VELO {
+    tag "$record.output_id"
+    executor 'local'
+    publishDir params.pubdir
+
+    input:
+    tuple val(record), path('*')
+  
+    output:
+    tuple val(record), path('*final*anndata*.h5ad')
+
+    script:
+    """
+    annotate.py
+    """
 }

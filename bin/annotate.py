@@ -1,31 +1,36 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
 from pathlib import Path
 
 import pandas as pd
 import scanpy as sc
 import scrublet as scr
 
-# Command line arguments should be pickled dataframe paths.
-# The dataframes contain genes, annotated by type
-parser = ArgumentParser()
-parser.add_argument('--ref_df_paths', '-r', nargs='*', type=Path, required=True)
-args = parser.parse_args()
+# Define the file extensions for each matrix type
+main_mat = '.h5'
+velo = '.loom'
+ref_data = '.pickle'
 
-# The current directory should have cellranger outputs.
-# Get the filtered feature matrix, ensuring there is just one.
-filt_mat_paths = list(Path('.').glob('*filtered*matrix*.h5'))
-if len(filt_mat_paths) != 1:
-    raise ValueError(
-        f'The following filtered matrix files were found:\n{", ".join(str(path) for path in filt_mat_paths)}\nThis pipeline requires exactly one.'
-    )
-adata = sc.read_10x_h5(filt_mat_paths[0])
+# Define a dictionary of readers for each extension and a dictionary to store the items read
+readers = {main_mat: sc.read_10x_h5, velo: sc.read_loom, ref_data: pd.read_pickle}
+
+# Using dictionary comprehension, read each file in. If the file extension is .pickle, there might be more than one, so store them as a list
+mat_by_ext = {
+    ext: [reader(path) for path in Path.cwd().glob(f'**/*{ext}')]
+    for ext, reader in readers.items()
+}
+
+# We expect only one h5 file due to how the pipeline works until now
+adata = mat_by_ext[main_mat][0]
+
+# Add velocyto layers to adata if it's there
+if mat_by_ext[velo]:
+    velo_adata = mat_by_ext[velo][0]
+    for l in (layer for layer in velo_adata.layers if layer != 'matrix'):
+        adata.layers[l] = velo_adata.layers[l].copy()
 
 # Iterate over each reference dataframe and each gene type and annotate
-for df_path in args.ref_df_paths:
-    ref_df = pd.read_pickle(df_path)
-
+for ref_df in mat_by_ext[ref_data]:
     # The boolean columns of the reference dataframes are the gene
     # annotations, so get them with generator comprehension
     gene_types = (col for col in ref_df.columns if ref_df[col].dtype == bool)

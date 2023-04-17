@@ -9,8 +9,9 @@ include { CELLRANGER_COUNT } from '../modules/cellranger_gex.nf'
 include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
-include { GET_ANNOTATIONS_AND_GENES_GTF } from '../modules/annotations_genes_gtf.nf'
-include { ANNOTATE_MATRIX } from '../modules/annotate.nf'
+include { EXTRACT_FILES } from '../modules/extract.nf'
+include { VELOCYTO } from '../modules/velocyto.nf'
+include { ANNOTATE_WITH_VELO; ANNOTATE_NO_VELO } from '../modules/annotate.nf'
 
 
 workflow TENX_GEX {
@@ -21,8 +22,23 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    GET_ANNOTATIONS_AND_GENES_GTF(gex_records)
-    ANNOTATE_MATRIX(CELLRANGER_COUNT.out.cellranger_outputs, GET_ANNOTATIONS_AND_GENES_GTF.out.gene_annotations_paths)
+    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
+
+    if (params.calc_rna_velo) {
+        pipeline_summary_dir = params.annotation_info_dir / 'with_rna_velo'
+        velocyto_input = CELLRANGER_COUNT.out.cellranger_outputs.join(EXTRACT_FILES.out, remainder: true)
+
+        VELOCYTO(velocyto_input)
+
+        annot_input = EXTRACT_FILES.out.join(VELOCYTO.out)
+        ANNOTATE_WITH_VELO(annot_input)
+    }
+    else {
+        pipeline_summary_dir = params.annotation_info_dir / 'no_rna_velo'
+
+        ANNOTATE_NO_VELO(EXTRACT_FILES.out)
+    }
+
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 
     hash_input = CELLRANGER_COUNT.out.cellranger_outputs
