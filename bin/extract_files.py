@@ -4,11 +4,11 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 # Define expected args and initialize argument parser
-expected_args = (('--ref_genome_dir', '-r'), ('--gene_annotations_dir', '-g'))
+expected_args = {'--ref_genome_dir': '-r', '--gene_annotations_dir': '-g'}
 parser = ArgumentParser()
 
 # Iterate over each exepcted arg and add to parser, then parse
-for long_name, short_name in expected_args:
+for long_name, short_name in expected_args.items():
     parser.add_argument(long_name, short_name, required=True, type=Path)
 args = parser.parse_args()
 
