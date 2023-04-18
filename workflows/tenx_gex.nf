@@ -26,27 +26,27 @@ workflow TENX_GEX {
     EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
 
     if (params.calc_rna_velo) {
-        pipeline_summary_dir = params.annotation_info_dir / 'with_rna_velo'
+        summary_dir = params.annotation_info_dir / 'with_rna_velo'
         velocyto_input = CELLRANGER_COUNT.out.cellranger_outputs.join(EXTRACT_FILES.out, remainder: true)
 
         VELOCYTO(velocyto_input)
 
         annot_input = EXTRACT_FILES.out.join(VELOCYTO.out)
         ANNOTATE_WITH_VELO(annot_input)
-        anndata = ANNOTATE_WITH_VELO.out
+        adata = ANNOTATE_WITH_VELO.out
     }
 
     else {
-        pipeline_summary_dir = params.annotation_info_dir / 'no_rna_velo'
+        summary_dir = params.annotation_info_dir / 'no_rna_velo'
 
         ANNOTATE_NO_VELO(EXTRACT_FILES.out)
-        anndata = ANNOTATE_NO_VELO.out
+        adata = ANNOTATE_NO_VELO.out
     }
 
-    PREPARE_SEURAT(anndata)
-    CONVERT_TO_SEURAT(anndata)
-    GEN_PLOTS(anndata)
-    GEN_SUMMARY(GEN_PLOTS.out, pipeline_summary_dir, params.pubdir)
+    PREPARE_SEURAT(adata)
+    CONVERT_TO_SEURAT(PREPARE_SEURAT.out)
+    GEN_PLOTS(adata)
+    GEN_SUMMARY(GEN_PLOTS.out, summary_dir)
 
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 

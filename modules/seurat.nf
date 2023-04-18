@@ -7,7 +7,6 @@ vim: syntax=groovy
 process PREPARE_SEURAT {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir
     
     input:
     tuple val(record), path('*')
@@ -24,7 +23,8 @@ process PREPARE_SEURAT {
 process CONVERT_TO_SEURAT {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir
+    publishDir params.pubdir, mode: 'copy'
+    container '/sc/service/tools/img/seurat_latest.sif'
 
     input:
     tuple val(record), path('*')

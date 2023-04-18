@@ -33,6 +33,7 @@ if mat_by_ext[velo]:
 
 # Iterate over each reference dataframe and each gene type and annotate
 for ref_df in mat_by_ext[ref_data]:
+
     # The boolean columns of the reference dataframes are the gene
     # annotations, so get them with generator comprehension
     gene_types = (col for col in ref_df.columns if ref_df[col].dtype == bool)
