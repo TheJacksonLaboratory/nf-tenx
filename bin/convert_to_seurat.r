@@ -7,8 +7,8 @@ library(glue)
 # Get the conversion directory from the command line
 command_line_args <- commandArgs(trailingOnly=TRUE)
 
-conversion_dir <- command_line_args[2]
-rna_velo <- command_line_args[3]
+rna_velo <- command_line_args[2]
+conversion_dir <- Sys.glob('*')[1]
 
 # Read in raw data and gene/cell metadata
 raw_data <- Read10X(data.dir=glue('{conversion_dir}/total_counts'))

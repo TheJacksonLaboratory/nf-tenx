@@ -4,36 +4,34 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-process ANNOTATE_WITH_VELO {
-    tag "$record.output_id"
+process GEN_PLOTS {
     executor 'local'
     publishDir params.pubdir
-
+    
     input:
-    tuple val(record), path('*'), path('*')
-  
+    tuple val(record), path('*')
+    
     output:
     tuple val(record), path('*')
-
+    
     script:
     """
-    annotate.py
+    gen_plots.py
     """
 }
 
-process ANNOTATE_NO_VELO {
-    tag "$record.output_id"
+process GEN_SUMMARY {
     executor 'local'
     publishDir params.pubdir
 
     input:
-    tuple val(record), path('*')
-  
+    tuple val(record), path('*'), path('*'), path('*')
+
     output:
-    tuple val(record), path('*final*anndata*.h5ad')
+    tuple val(record), path('*')
 
     script:
     """
-    annotate.py
+    gen_summary.py
     """
 }

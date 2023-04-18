@@ -46,7 +46,7 @@
             </div>
         </div>
     </div>
-    <h2 class="text-center mb-5 display-2">Plots</h1>
+    <h2 class="text-center mb-5 display-2">Plots</h2>
     <div class="container" id="Plots">
         {% for i in range(0, (plot_paths|length) - 1, 2) %}
         <div class="row">
@@ -63,10 +63,7 @@
     <div class="container" id="Outputs">
         <div class="row">
             <div class="col-md">
-                <code><pre>{{ im_dir_tree }}</pre></code>
-            </div>
-            <div class="col-md">
-                <code><pre>{{ final_dir_tree }}</pre></code>
+                <code><pre>{{ dir_tree }}</pre></code>
             </div>
         </div>
     </div>
@@ -90,7 +87,7 @@
     <div class="container" id="Tools_Used">
         <ul class="list-group">
             {% for tool in tools_used %}
-            <li class="list-group">{{ tool }}</li>
+            <li class="list-group">{{ tool['tool'] }}</li>
             {% endfor %}
         </ul>
     </div>

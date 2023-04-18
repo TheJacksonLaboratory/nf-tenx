@@ -12,7 +12,8 @@ include { DUMP_METADATA } from '../modules/metadata.nf'
 include { EXTRACT_FILES } from '../modules/extract.nf'
 include { VELOCYTO } from '../modules/velocyto.nf'
 include { ANNOTATE_WITH_VELO; ANNOTATE_NO_VELO } from '../modules/annotate.nf'
-
+include { PREPARE_SEURAT; CONVERT_TO_SEURAT} from '../modules/seurat.nf'
+include { GEN_PLOTS; GEN_SUMMARY } from '../modules/gen_info.nf'
 
 workflow TENX_GEX {
     take: gex_records
@@ -32,12 +33,20 @@ workflow TENX_GEX {
 
         annot_input = EXTRACT_FILES.out.join(VELOCYTO.out)
         ANNOTATE_WITH_VELO(annot_input)
+        anndata = ANNOTATE_WITH_VELO.out
     }
+
     else {
         pipeline_summary_dir = params.annotation_info_dir / 'no_rna_velo'
 
         ANNOTATE_NO_VELO(EXTRACT_FILES.out)
+        anndata = ANNOTATE_NO_VELO.out
     }
+
+    PREPARE_SEURAT(anndata)
+    CONVERT_TO_SEURAT(anndata)
+    GEN_PLOTS(anndata)
+    GEN_SUMMARY(GEN_PLOTS.out, pipeline_summary_dir, params.pubdir)
 
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 

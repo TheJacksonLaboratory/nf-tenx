@@ -4,36 +4,36 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-process ANNOTATE_WITH_VELO {
+process PREPARE_SEURAT {
     tag "$record.output_id"
     executor 'local'
     publishDir params.pubdir
-
+    
     input:
-    tuple val(record), path('*'), path('*')
-  
+    tuple val(record), path('*')
+    
     output:
     tuple val(record), path('*')
-
+    
     script:
     """
-    annotate.py
+    prepare_seurat.py
     """
 }
 
-process ANNOTATE_NO_VELO {
+process CONVERT_TO_SEURAT {
     tag "$record.output_id"
     executor 'local'
     publishDir params.pubdir
 
     input:
     tuple val(record), path('*')
-  
+
     output:
-    tuple val(record), path('*final*anndata*.h5ad')
+    tuple val(record), path('*')
 
     script:
     """
-    annotate.py
+    convert_to_seurat.r --args ${params.calc_rna_velo}
     """
 }
