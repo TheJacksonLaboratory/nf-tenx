@@ -7,12 +7,14 @@ import scanpy as sc
 import scrublet as scr
 
 # Define the file extensions for each matrix type
-main_mat = '.h5'
+main_mat_h5 = '.h5'
+main_mat_h5ad = '.h5ad'
 velo = '.loom'
 ref_data = '.pickle'
 
 # Define a dictionary of readers for each extension and a dictionary to store the items read
-readers = {main_mat: sc.read_10x_h5,
+readers = {main_mat_h5: sc.read_10x_h5,
+           main_mat_h5ad: sc.read_h5ad,
            velo: sc.read_loom,
            ref_data: pd.read_pickle}
 
@@ -22,8 +24,14 @@ mat_by_ext = {
     for ext, reader in readers.items()
 }
 
-# We expect only one h5 file due to how the pipeline works until now
-adata = mat_by_ext[main_mat][0]
+main_mats = mat_by_ext[main_mat_h5] + mat_by_ext[main_mat_h5ad]
+if len(main_mats) != 1:
+    raise ValueError(
+        f'Something went wrong. The following filtered feature matrix files were found, but at this point of the '
+        f'pipeline, there should just be one.\n'
+        + '\n'.join(str(adata.filename) for adata in main_mats))
+
+adata = main_mats[0]
 
 # Add velocyto layers to adata if it's there
 if mat_by_ext[velo]:

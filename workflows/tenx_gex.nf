@@ -14,6 +14,7 @@ include { VELOCYTO } from '../modules/velocyto.nf'
 include { ANNOTATE_WITH_VELO; ANNOTATE_NO_VELO } from '../modules/annotate.nf'
 include { PREPARE_SEURAT; CONVERT_TO_SEURAT} from '../modules/seurat.nf'
 include { GEN_PLOTS; GEN_SUMMARY } from '../modules/gen_info.nf'
+include { FITLTER_AMBIEN_RNA; CONVERT_TO_H5AD } from '../modules/ambient_rna.nf'
 
 workflow TENX_GEX {
     take: gex_records
@@ -23,7 +24,13 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
+
+    FILTER_AMBIENT_RNA(CELLRANGER_COUNT.out.cellranger_outputs)
+    CONVERT_TO_H5AD(FILTER_AMBIENT_RNA.out)
+
+    matrices_ch = Channel.of(CELLRANGER_COUNT.out.cellranger_outputs, CONVERT_TO_H5AD.out)
+
+    EXTRACT_FILES(matrices_ch)
 
     if (params.calc_rna_velo) {
         summary_dir = params.annotation_info_dir / 'with_rna_velo'

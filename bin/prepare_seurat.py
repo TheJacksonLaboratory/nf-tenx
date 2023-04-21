@@ -18,30 +18,30 @@ conversion_dir.mkdir()
 # Generate a list of directory names based on RNA-velocity.
 # This will work whether or not RNA velocity was run because adata.layers maybe empty
 sub_dirs = ['total_counts'] + list(adata.layers)
-for direc in sub_dirs:
-    matrix_dir = conversion_dir / Path(direc)
-    matrix_dir.mkdir()
+matrix_dirs = [conversion_dir / Path(d) for d in sub_dirs]
+for direc in matrix_dirs:
+    direc.mkdir()
 
     # Save the gene names to barcodes.tsv. By doing headers=False and 
     # columns=[], pandas will write only the indices, which are cell barcodes
-    barcodes_path = matrix_dir / Path('barcodes.tsv')
+    barcodes_path = direc / Path('barcodes.tsv')
     adata.obs.to_csv(barcodes_path, header=False, columns=[], sep='\n')
 
     # Mimic the features.tsv file outputted by cellranger
-    features_path = matrix_dir / Path('features.tsv')
+    features_path = direc / Path('features.tsv')
     with features_path.open(mode='w') as f:
         for gene in adata.var_names:
             f.write(f'{adata.var.loc[gene, "gene_ids"]}\t{gene}\tGene Expression\n')
 
     # Write the matrix file. Note that it is a transpose per Seurat's requirements
-    matrix_path = matrix_dir / Path('matrix')
+    matrix_path = direc / Path('matrix')
     if direc == 'total_counts':
         mmwrite(matrix_path, adata.X.T)
     else:
         mmwrite(matrix_path, adata.layers[direc].T, field='integer')
 
     # Seurat expects gzipped files, so zip everything in matrix files directory
-    run(rf'gzip {matrix_dir}/*', shell=True)
+    run(rf'gzip {direc}/*', shell=True)
 
 # Convert boolean columns to integer for ease of use in R
 for column in (col for col in adata.obs.columns if adata.obs[col].dtype == bool):
