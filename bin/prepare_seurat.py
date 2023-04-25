@@ -35,10 +35,10 @@ for direc in matrix_dirs:
 
     # Write the matrix file. Note that it is a transpose per Seurat's requirements
     matrix_path = direc / Path('matrix')
-    if direc == 'total_counts':
+    if direc.name == 'total_counts':
         mmwrite(matrix_path, adata.X.T)
     else:
-        mmwrite(matrix_path, adata.layers[direc].T, field='integer')
+        mmwrite(matrix_path, adata.layers[direc.name].T, field='integer')
 
     # Seurat expects gzipped files, so zip everything in matrix files directory
     run(rf'gzip {direc}/*', shell=True)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from numpy import kaiser
 import scanpy as sc
 from pathlib import Path
 

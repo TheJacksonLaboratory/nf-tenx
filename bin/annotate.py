@@ -8,13 +8,11 @@ import scrublet as scr
 
 # Define the file extensions for each matrix type
 main_mat_h5 = '.h5'
-main_mat_h5ad = '.h5ad'
 velo = '.loom'
 ref_data = '.pickle'
 
 # Define a dictionary of readers for each extension and a dictionary to store the items read
 readers = {main_mat_h5: sc.read_10x_h5,
-           main_mat_h5ad: sc.read_h5ad,
            velo: sc.read_loom,
            ref_data: pd.read_pickle}
 
@@ -70,7 +68,7 @@ sc.pp.calculate_qc_metrics(
 
 # Calculate predicted doublets and doublet scores
 scrub = scr.Scrublet(adata.X)
-doublet_scores, predicted_doublets = scrub.scrub_doublets()
+doublet_scores, predicted_doublets = scrub.scrub_doublets(n_prin_comps=10)
 adata.obs['doublet_score'] = doublet_scores
 adata.obs['doublet_predicted'] = predicted_doublets
 
