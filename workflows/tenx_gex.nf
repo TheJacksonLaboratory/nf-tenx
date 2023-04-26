@@ -24,7 +24,7 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    // FILTER_AMBIENT_RNA(CELLRANGER_COUNT.out.cellranger_outputs)
+    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
 
     // matrices_ch = CELLRANGER_COUNT.out.cellranger_outputs.mix(FILTER_AMBIENT_RNA.out)
     

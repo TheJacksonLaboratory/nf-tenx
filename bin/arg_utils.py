@@ -5,26 +5,26 @@ from pathlib import Path
 def parse_cl_paths(*expected_args: tuple[str, str, str]) -> Namespace | None:
     """
     Takes expected command-line arguments (representing paths) and returns
-    an `argparse.Namespace` of `pathlib.Path`s.
+    an argparse.Namespace of pathlib.Paths.
 
     Parameters
     ----------
-    `*expected_args` : `tuple[str, str, str]`
-        `(long_name, short_name, help)`. These are eventually passed into
-        `argparse.ArgumentParser.add_argument()` as keyword arguments.
+    *expected_args : tuple[str, str, str]
+        (long_name, short_name, help). These are eventually passed into
+        argparse.ArgumentParser.add_argument() as keyword arguments.
         Note that all command-line arguments will be read as
-        `pathlib.Path` objects.
+        pathlib.Path objects.
 
     Returns
     -------
-    `args` : `arparse.Namespace`
+    args : arparse.Namespace
         The parsed command-line arguments, each accessible by
-        `args.long_name`.
+        args.long_name.
 
     Raises
     ------
-    `ValueError`
-        If any of the tuples are not length 2 or 3, raise `ValueError`
+    ValueError
+        If any of the tuples are not length 2 or 3, raise ValueError
     """
 
     # Initialize parser
