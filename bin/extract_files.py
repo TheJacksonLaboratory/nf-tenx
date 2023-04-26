@@ -24,39 +24,37 @@ def extract_files(args: Namespace) -> str:
     If this condition is met, write a CSV mapping each gene symbol to its genome for soupx to use later.
     """
 
-    # Use generator comprehension to get all the gene annotation files of the genomes present in the reference genome
-    # path
-    annot_paths = (
-        path
-        for path in args.annots_dir.iterdir()
-        if path.stem in str(args.ref_genome_dir)
-    )
+    # Each file in the annotations directory, located in assets, corresponds to a genome. The stem of these files are
+    # genomes, so take only those files whose stems are found in the reference genome path. Store them in a dict as
+    # keys, and symlink to the files while we're at it using dict comprehension
+    annot_paths = {
+        actual_path.stem: Path(actual_path.name).symlink_to(actual_path)
+        for actual_path in args.annots_dir.iterdir()
+        if actual_path.stem in str(args.ref_genome_dir)
+    }
 
-    # Iterate over each gene annotation file and write the genome found to a file for later reporting. Also symlink
-    # it to expose to the rest of the pipeline
+    # Write the genomes found for later use in the HTML summary
     with Path('found_genomes.txt').open('w') as f:
-        for actual_path in annot_paths:
-            f.write(f'{actual_path.stem}\n')
-            Path(actual_path.name).symlink_to(actual_path)
+        f.write('\n'.join(genome for genome in annot_paths.keys()))
 
     # Define a pattern for each desired file type
     filt_mtx_pattern = '*filtered*matrix*.h5'
     genes_gtf_pattern = '*genes*.gtf'
 
-    # Define a mapping between the directory to search for a given pattern and the pattern itself
+    # Map each pattern to the directory it should be found in
     dir_to_pattern = {
         filt_mtx_pattern: Path.cwd(),
         genes_gtf_pattern: args.ref_genome_dir
     }
 
-    # Use dict comprehension to get a list of paths in each directory that match the pattern. Each list should have
-    # just one element
+    # Use dict comprehension to recursively glob for paths in each directory that match the pattern. Each list should
+    # have just one element
     extracted_paths = {
         pattern: list(direc.rglob(pattern))
         for pattern, direc in dir_to_pattern.items()
     }
 
-    # If any of the above searching found more than one file, raise an error
+    # If any of the above patterns matched more than one file, raise an error
     if any(len(paths) > 1 for paths in extracted_paths.values()):
         raise ValueError(
             'This pipeline requires exactly one file to match each of the following glob patterns:\n'
@@ -77,17 +75,17 @@ def extract_files(args: Namespace) -> str:
     # If this list has any elements, there was a problem with cellranger count, so raise an error
     if mismatch:
         raise ValueError(
-            f'The following genomes were present in adata.var["genome"] when {actual_path.name} was read with '
-            f'adata = sc.read_10x_h5({actual_path.name}). These are not in the reference genome path '
+            f'The following genomes were present in adata.var["genome"] when {adata.filename.name} was read with '
+            f'adata = sc.read_10x_h5({adata.filename.name}). These are not in the reference genome path '
             f'{args.ref_genome_dir}:\n' + '\n'.join(mismatch)
         )
 
     # Soupx will require a CSV mapping genes to genomes, so write the CSV now. Note index_label=False for better
     # importing into R, per the function's documentation
-    adata.var[['gene_ids', 'genome']].to_csv(args.genes_genome_csv, index_label=False)
+    adata.var[['gene_ids', 'genome']].to_csv(args.genome_csv_name, index_label=False)
 
-    genes_gtf_path = extracted_paths[genes_gtf_pattern][0]
-    genes_gtf_path.symlink_to(genes_gtf_path.name)
+    # Finally, symlink the genes.gtf file for velocyto to use later
+    args.genes_gtf_name.symlink_to(extracted_paths[genes_gtf_pattern][0])
 
     return 'The filtered feature matrix and genes.gtf files were found successfully. The genomes present in the ' \
            'former matched those in the reference genome path.'
@@ -97,7 +95,7 @@ if __name__ == '__main__':
     cl_paths = parse_cl_paths(
         (
             '--ref_genome_dir',
-            '-g',
+            '-r',
             'The reference genome path of the sample, as supplied by the "reference_path" field in the samplesheet.'
         ),
         (
@@ -108,10 +106,17 @@ if __name__ == '__main__':
             'information.'
         ),
         (
-            '--genes_genome_csv',
+            '--genome_csv_name',
             '-c',
-            'The path of the outputted CSV file that will contain a mapping between each gene to its genome for use '
+            'What to name the CSV file outputted that will contain a mapping between each gene to its genome for use '
             'by soupx.'
+        ),
+        (
+            '--genes_gtf_name',
+            '-g',
+            'What to name the genes.gtf file symlinked from the reference genome directory for velocyto to use later '
+            'in the pipeline.'
         )
     )
     message = extract_files(cl_paths)
+    print(message)

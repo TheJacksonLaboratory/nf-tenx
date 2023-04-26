@@ -24,11 +24,11 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
+    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs, 'genes_by_genome.csv', 'velocyto_genes.gtf')
+
+    //FILTER_AMBIENT_RNA(EXTRACT_FILES.out.extracted)
 
     // matrices_ch = CELLRANGER_COUNT.out.cellranger_outputs.mix(FILTER_AMBIENT_RNA.out)
-    
-    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
 
     // if (params.calc_rna_velo) {
     //     summary_dir = params.annotation_info_dir / 'with_rna_velo'

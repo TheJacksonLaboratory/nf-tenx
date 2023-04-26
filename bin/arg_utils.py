@@ -20,11 +20,6 @@ def parse_cl_paths(*expected_args: tuple[str, str, str]) -> Namespace | None:
     args : arparse.Namespace
         The parsed command-line arguments, each accessible by
         args.long_name.
-
-    Raises
-    ------
-    ValueError
-        If any of the tuples are not length 2 or 3, raise ValueError
     """
 
     # Initialize parser
