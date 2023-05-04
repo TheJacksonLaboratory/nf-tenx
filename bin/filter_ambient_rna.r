@@ -7,27 +7,44 @@ library(DropletUtils)
 soup_object <- load10X(getwd())
 
 # Estimate level of background contamination
-soup_object <- autoEstCont(soup_object)
+soup_object <- autoEstCont(soup_object, soupQuantile = 0.1, tfidfMin = 0.1)
 
 # Adjust counts accordingly
-output <- adjustCounts(soupx_object)
+output <- adjustCounts(soup_object)
 
 # Glob for the features TSV, which containes gene IDs and symbols.
 # There should only be one, so just pick the first element
-genes_file <- Sys.glob("**/*filtered*feature*matrix*/*features*.tsv.gz")[0]
-genes_by_genome <- some_file
+genes_file <- Sys.glob("*filtered*feature*matrix*/*features*.tsv.gz")
 
 # Read the file into a dataframe (note the sep argument and the header
 # argument per the format of the 10x file)
 gene_info <- read.csv(genes_file, sep = "\t", header = FALSE)
-genome_by_gene <- read.csv()
+
+# A CSV mapping each gene to its genome should have been passed in as a
+# command-line argument
+command_line_args <- commandArgs(trailingOnly = TRUE)
+genes_by_genome <- read.csv(command_line_args[2])
+
+output_dir <- command_line_args[3]
 
 # Use the droplet-utils writing function to write the file,
-# manually setting the gene IDs/symbols with the dataframe loaded above
-write10xCounts("soupx_filtered_matrix.h5",
+# manually setting the gene IDs, symbols, and  with the dataframes loaded above
+write10xCounts(
+    file.path(output_dir, "filtered_matrix.h5"),
     output,
-    gene.id = gene_ids$V1,
-    gene.symbol = gene_ids$V2,
-    gene.type = gene_info$V3
+    gene.id = gene_info$V1,
+    gene.symbol = gene_info$V2,
+    gene.type = gene_info$V3,
+    genome = genes_by_genome,
+    version = "3"
 )
-file.path()
+
+write10xCounts(
+    file.path(output_dir, "filtered_matrix"),
+    output,
+    gene.id = gene_info$V1,
+    gene.symbol = gene_info$V2,
+    gene.type = gene_info$V3,
+    genome = genes_by_genome,
+    version = "3"
+)

@@ -7,13 +7,13 @@ vim: syntax=groovy
 process GEN_PLOTS {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir, mode: 'copy'
+    publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
     
     input:
-    tuple val(record), path('*')
+    tuple val(record), path('*'), val(tool)
     
     output:
-    tuple val(record), path('*')
+    tuple val(record), path('*'), val(tool)
     
     script:
     """
@@ -24,17 +24,18 @@ process GEN_PLOTS {
 process GEN_SUMMARY {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir, mode: 'copy'
+    publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
 
     input:
-    tuple val(record), path('*')
+    tuple val(record), path('*', stageAs: 'plots/*'), val(tool)
     path summary_dir
 
     output:
     tuple val(record), path('*')
 
     script:
+    plots_dir = 'plots'
     """
-    gen_summary.py --summary_dir=${summary_dir} --pubdir=${launchDir / params.pubdir}
+    gen_summary.py --summary_dir=${summary_dir} --pubdir=${launchDir / params.pubdir} --plots_dir=${plots_dir}
     """
 }

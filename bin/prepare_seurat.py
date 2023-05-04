@@ -1,60 +1,66 @@
 #!/usr/bin/env python3
 
-import scanpy as sc
-from subprocess import run
+import gzip
+from io import BytesIO
 from pathlib import Path
+
+import scanpy as sc
+from arg_utils import parse_cl_paths
 from scipy.io import mmwrite
 
-# The only thing staged in by Nextflow should be the anndata file (extension .h5ad).
-# Use next() to get it out of the glob generator
-adata_path = next(Path.cwd().glob('*.h5ad'))
-adata = sc.read_h5ad(adata_path)
 
-# Convert AnnData object to Seurat object and save to disk
-# Set conversion directory, where the files used to construct seurat object will be stored
-conversion_dir = Path('seurat_conversion')
-conversion_dir.mkdir()
+def prepare_seurat(total_counts_dir: Path) -> None:
+    # The only thing staged in by Nextflow should be the anndata file (extension .h5ad).
+    # Use next() to get it out of the glob generator
+    adata_path = next(Path().rglob('*.h5ad'))
+    adata = sc.read_h5ad(adata_path)
 
-# Generate a list of directory names based on RNA-velocity.
-# This will work whether or not RNA velocity was run because adata.layers maybe empty
-sub_dirs = ['total_counts'] + list(adata.layers)
-matrix_dirs = [conversion_dir / Path(d) for d in sub_dirs]
-for direc in matrix_dirs:
-    direc.mkdir()
+    # Set a layer 'total_counts' equal to adata.X for easier iteration
+    adata.layers[total_counts_dir.name] = adata.X  # type: ignore
 
-    # Save the gene names to barcodes.tsv. By doing headers=False and 
-    # columns=[], pandas will write only the indices, which are cell barcodes
-    barcodes_path = direc / Path('barcodes.tsv')
-    adata.obs.to_csv(barcodes_path, header=False, columns=[], sep='\n')
+    # For every layer of adata, the following three files must exist for seurat to work
+    file_types = ('matrix.mtx.gz', 'barcodes.tsv.gz', 'features.tsv.gz')
 
-    # Mimic the features.tsv file outputted by cellranger
-    features_path = direc / Path('features.tsv')
-    with features_path.open(mode='w') as f:
-        for gene in adata.var_names:
-            f.write(f'{adata.var.loc[gene, "gene_ids"]}\t{gene}\tGene Expression\n')
+    # Use double generator comprehension to make paths for each file type in each layer
+    files_by_layer = (
+        (Path(f'{layer}/{f}') for f in file_types) for layer in adata.layers
+    )
 
-    # Write the matrix file. Note that it is a transpose per Seurat's requirements
-    matrix_path = direc / Path('matrix')
-    if direc.name == 'total_counts':
-        mmwrite(matrix_path, adata.X.T)
-    else:
-        mmwrite(matrix_path, adata.layers[direc.name].T, field='integer')
+    # Iterate over each triplet and set up the directory
+    for mtx_path, barcodes_path, features_path in files_by_layer:
+        # First, make the directory for this layer
+        mtx_path.parent.mkdir()
 
-    # Seurat expects gzipped files, so zip everything in matrix files directory
-    run(rf'gzip {direc}/*', shell=True)
+        # Save the gene names to barcodes.tsv. By doing headers=False and
+        # columns=[], pandas will write only the indices, which are
+        # cell barcodes
+        adata.obs.to_csv(barcodes_path, header=False, columns=[], sep='\n')
 
-# Convert boolean columns to integer for ease of use in R
-for column in (col for col in adata.obs.columns if adata.obs[col].dtype == bool):
-    adata.obs[column] = adata.obs[column].astype(int)
+        # Mimic the features.tsv file outputted by cellranger
+        adata.var[['gene_ids', 'feature_types']].to_csv(
+            features_path, sep='\t', header=False
+        )
 
-for column in (col for col in adata.var.columns if adata.var[col].dtype == bool):
-    adata.var[column] = adata.var[column].astype(int)
+        # Write the matrix file into a bytes buffer for gzip compression
+        # Note the transpose, since Seurat expects a transposed matrix
+        bytes_buffer = BytesIO()
+        mmwrite(bytes_buffer, adata.layers[mtx_path.parent.name].T, field='integer')
 
-# Save gene/cell annotations as CSVs to add to Seurat object. Note that
-# index_label=False for easier compatability with R, per the
-# pandas documentation.
-obs_path = conversion_dir / Path('obs.csv')
-adata.obs.to_csv(obs_path, index_label=False)
+        with gzip.open(mtx_path, mode='wb') as f:
+            f.write(bytes_buffer.getvalue())
 
-var_path = conversion_dir / Path('var.csv')
-adata.var.to_csv(var_path, index_label=False)
+    for df_type in ('obs', 'var'):
+        # Get either the obs or var dataframe from the AnnData object
+        df = getattr(adata, df_type)
+
+        # Convert boolean columns to integer columns for ease of use in R
+        df.loc[:, df.dtypes == bool] = df.loc[:, df.dtypes == bool].astype(int)
+
+        # Save annotations as CSV for Seurat. index_label = False for
+        # compatability with R (per pandas documentation)
+        df.to_csv(Path(f'{df_type}.csv'), index_label=False)
+
+
+if __name__ == '__main__':
+    args = parse_cl_paths({'--total_counts_dir': '-t'})
+    prepare_seurat(args.total_counts_dir)

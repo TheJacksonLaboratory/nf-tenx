@@ -3,9 +3,4 @@ pubdir
 .nextflow*
 tests/test_data/*fastq.gz
 .vscode
-gex_samplesheet.yml
-bin/strainedCounts
-read.py
-Rplots.pdf
-soupx_filtered_matrix_test_1.h5
-soupx_filtered.h5
+**/__pycache__

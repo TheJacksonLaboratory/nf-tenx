@@ -7,18 +7,18 @@ vim: syntax=groovy
 
 process VELOCYTO {
     tag "$record.output_id"
-    publishDir params.pubdir, pattern: '**/*.loom', mode: 'copy', saveAs: "$record.output_id-spliced-matrices.loom"
+    publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", pattern: "*.loom", mode: "copy", saveAs: "${record.output_id}_velocyto_spliced_mtx_${tool}.loom"
     label "velocyto"
 
     input:
-    tuple val(record), path('*'), path('**/*genes*.gtf', stageAs: 'velocyto_genes.gtf')
+    tuple val(record), path('*', stageAs: 'outs/*'), val(tool)
+    path genes_gtf
 
     output:
-    tuple val(record), path('**/*.loom')
+    tuple val(record), path('*', includeInputs: true), val(tool)
 
     script:
     """
-    ln -s . outs
-    velocyto run10x --samtools-threads=${task.cpus} --logic=ObservedSpanning10X . velocyto_genes.gtf
+    velocyto run10x --samtools-threads=${task.cpus} --logic=ObservedSpanning10X . ${genes_gtf}
     """
 }

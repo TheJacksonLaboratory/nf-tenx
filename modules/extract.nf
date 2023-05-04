@@ -8,20 +8,20 @@ vim: syntax=groovy
 process EXTRACT_FILES {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir, pattern: "*.parquet", mode: "copy"
+    publishDir "${params.pubdir}/${record.output_id}/reference_gene_annotations", pattern: "*.parquet", mode: "copy"
 
     input:
-    tuple val(record), path('*', stageAs: 'outs/*')
-    val genome_csv_name
-    val genes_gtf_name
+    tuple val(record), path('*')
 
     output:
-    tuple val(record), path('*', includeInputs: true), emit: extracted
+    tuple val(record), path('*', includeInputs: true), val('cellranger'), emit: cellranger
+    val(genome_csv_name), emit: genome_csv
     path(genes_gtf_name), emit: genes_gtf
 
     script:
+    genome_csv_name = "genes_genome.csv"
+    genes_gtf_name = "velocyto_genes.gtf"
     """
-    mkdir soupx
-    extract_files.py --ref_genome_dir=${record.reference_path} --annots_dir=${params.annots_dir} --genome_csv_name=soupx/${genome_csv_name} --genes_gtf_name=${genes_gtf_name}
+    extract_files.py --ref_genome_dir=${record.reference_path} --annots_dir=${params.annots_dir} --genome_csv_name=${genome_csv_name} --genes_gtf_name=${genes_gtf_name}
     """
 }

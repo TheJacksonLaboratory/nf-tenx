@@ -4,36 +4,19 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-process ANNOTATE_WITH_VELO {
+process ANNOTATE_MTX {
     tag "$record.output_id"
     executor 'local'
-    publishDir params.pubdir, mode: 'copy'
+    publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
 
     input:
-    tuple val(record), path('*'), path('*')
+    tuple val(record), path('*'), val(tool)
   
     output:
-    tuple val(record), path('*')
+    tuple val(record), path('*'), val(tool)
 
     script:
     """
-    annotate.py
-    """
-}
-
-process ANNOTATE_NO_VELO {
-    tag "$record.output_id"
-    executor 'local'
-    publishDir params.pubdir, mode: 'copy'
-
-    input:
-    tuple val(record), path('*')
-  
-    output:
-    tuple val(record), path('*')
-
-    script:
-    """
-    annotate.py
+    annotate.py --output_path=${record.output_id}_annotated_${tool}_mtx.h5ad
     """
 }

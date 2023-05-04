@@ -11,8 +11,8 @@ include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
 include { EXTRACT_FILES } from '../modules/extract.nf'
 include { VELOCYTO } from '../modules/velocyto.nf'
-include { ANNOTATE_WITH_VELO; ANNOTATE_NO_VELO } from '../modules/annotate.nf'
-include { PREPARE_SEURAT; CONVERT_TO_SEURAT} from '../modules/seurat.nf'
+include { ANNOTATE_MTX } from '../modules/annotate.nf'
+include { CONVERT_TO_SEURAT} from '../modules/seurat.nf'
 include { GEN_PLOTS; GEN_SUMMARY } from '../modules/gen_info.nf'
 include { FILTER_AMBIENT_RNA } from '../modules/ambient_rna.nf'
 
@@ -24,45 +24,39 @@ workflow TENX_GEX {
     MULTIQC(FASTQC.out.fastqc_results)
 
     CELLRANGER_COUNT(gex_records)
-    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs, 'genes_by_genome.csv', 'velocyto_genes.gtf')
+    EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
+    
+    FILTER_AMBIENT_RNA(EXTRACT_FILES.out.cellranger, EXTRACT_FILES.out.genome_csv)
 
-    //FILTER_AMBIENT_RNA(EXTRACT_FILES.out.extracted)
+    matrices_ch = EXTRACT_FILES.out.cellranger.mix(FILTER_AMBIENT_RNA.out)
 
-    // matrices_ch = CELLRANGER_COUNT.out.cellranger_outputs.mix(FILTER_AMBIENT_RNA.out)
+    if (params.calc_rna_velo) {
+        summary_dir = params.summaries_dir / 'with_rna_velo'
+        
+        VELOCYTO(matrices_ch, EXTRACT_FILES.out.genes_gtf)    
+        adata = ANNOTATE_MTX(VELOCYTO.out)
+    }
 
-    // if (params.calc_rna_velo) {
-    //     summary_dir = params.annotation_info_dir / 'with_rna_velo'
-    //     velocyto_input = CELLRANGER_COUNT.out.cellranger_outputs.join(EXTRACT_FILES.out, remainder: true)
+    else {
+        summary_dir = params.summaries_dir / 'no_rna_velo'
 
-    //     VELOCYTO(velocyto_input)
+        adata = ANNOTATE_MTX(matrices_ch)
+    }
 
-    //     annot_input = EXTRACT_FILES.out.join(VELOCYTO.out)
-    //     ANNOTATE_WITH_VELO(annot_input)
-    //     adata = ANNOTATE_WITH_VELO.out
-    // }
+    CONVERT_TO_SEURAT(adata)
+    GEN_PLOTS(adata)
+    GEN_SUMMARY(GEN_PLOTS.out, summary_dir)
 
-    // else {
-    //     summary_dir = params.annotation_info_dir / 'no_rna_velo'
+    SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 
-    //     ANNOTATE_NO_VELO(EXTRACT_FILES.out)
-    //     adata = ANNOTATE_NO_VELO.out
-    // }
+    hash_input = CELLRANGER_COUNT.out.cellranger_outputs
+    .join(SEQUENCING_SATURATION.out.hash_data, remainder:true)
+    .map { it -> [ it[0], it[1..-1].flatten()] }
 
-    // PREPARE_SEURAT(adata)
-    // CONVERT_TO_SEURAT(PREPARE_SEURAT.out)
-    // GEN_PLOTS(adata)
-    // GEN_SUMMARY(GEN_PLOTS.out, summary_dir)
+    COMPUTE_PROCESSED_HASHES(hash_input)
 
-    // SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
-
-    // hash_input = CELLRANGER_COUNT.out.cellranger_outputs
-    //     .join(SEQUENCING_SATURATION.out.hash_data, remainder:true)
-    //     .map { it -> [ it[0], it[1..-1].flatten()] }
-
-    // COMPUTE_PROCESSED_HASHES(hash_input)
-
-    // metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
-    //     .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)
-    //     .join(CELLRANGER_COUNT.out.metrics, remainder:true)
-    // DUMP_METADATA(metadata_input)
+    metadata_input = COMPUTE_FASTQ_HASHES.out.input_hashes
+    .join(COMPUTE_PROCESSED_HASHES.out.output_hashes, remainder:true)
+    .join(CELLRANGER_COUNT.out.metrics, remainder:true)
+    DUMP_METADATA(metadata_input)
 }

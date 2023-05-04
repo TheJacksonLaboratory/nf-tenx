@@ -25,9 +25,9 @@ params.tag_list = params.getOrDefault(
 )
 params.annots_dir = params.getOrDefault(
     "annots_dir",
-    params.assets_dir / path("ref_annotations")
+    params.assets_dir / "ref_annotations"
 )
-params.summaries_dir = params.assets_dir / path("summaries")
+params.summaries_dir = params.assets_dir / "summaries"
 params.calc_rna_velo = ""
 
 /*
