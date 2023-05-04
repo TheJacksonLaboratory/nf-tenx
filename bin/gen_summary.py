@@ -10,7 +10,7 @@ from jinja2 import Environment, FileSystemLoader
 
 def gen_summary(pubdir: Path, summary_dir: Path, plots_dir: Path) -> None:
     # Get the plots and summary files
-    plot_paths = tuple(plots_dir.iterdir())
+    plot_paths = tuple(Path().rglob('*.svg'))
     summary_files = tuple(summary_dir.iterdir())
 
     # The CSVs contain information, so get those separately

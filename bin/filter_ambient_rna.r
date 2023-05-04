@@ -7,7 +7,7 @@ library(DropletUtils)
 soup_object <- load10X(getwd())
 
 # Estimate level of background contamination
-soup_object <- autoEstCont(soup_object, soupQuantile = 0.1, tfidfMin = 0.1)
+soup_object <- autoEstCont(soup_object)
 
 # Adjust counts accordingly
 output <- adjustCounts(soup_object)

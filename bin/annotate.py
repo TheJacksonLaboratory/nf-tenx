@@ -88,7 +88,7 @@ def annotate(output_path: Path) -> str:
 
     # Calculate predicted doublets and doublet scores
     scrub = scr.Scrublet(adata.X)
-    doublet_scores, predicted_doublets = scrub.scrub_doublets(n_prin_comps=10)
+    doublet_scores, predicted_doublets = scrub.scrub_doublets()
     adata.obs['doublet_score'] = doublet_scores
     adata.obs['doublet_predicted'] = predicted_doublets
 

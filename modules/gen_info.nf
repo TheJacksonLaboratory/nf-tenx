@@ -27,7 +27,7 @@ process GEN_SUMMARY {
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
 
     input:
-    tuple val(record), path('*', stageAs: 'plots/*'), val(tool)
+    tuple val(record), path('*'), val(tool)
     path summary_dir
 
     output:
