@@ -34,8 +34,7 @@ process GEN_SUMMARY {
     tuple val(record), path('*')
 
     script:
-    plots_dir = 'plots'
     """
-    gen_summary.py --summary_dir=${summary_dir} --pubdir=${launchDir / params.pubdir} --plots_dir=${plots_dir}
+    gen_summary.py --summary_dir=${summary_dir} --pubdir=${launchDir / params.pubdir}
     """
 }
