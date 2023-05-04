@@ -8,7 +8,7 @@ from directory_tree import display_tree
 from jinja2 import Environment, FileSystemLoader
 
 
-def gen_summary(pubdir: Path, summary_dir: Path, plots_dir: Path) -> None:
+def gen_summary(pubdir: Path, summary_dir: Path) -> None:
     # Get the plots and summary files
     plot_paths = tuple(Path().rglob('*.svg'))
     summary_files = tuple(summary_dir.iterdir())
@@ -57,8 +57,8 @@ def gen_summary(pubdir: Path, summary_dir: Path, plots_dir: Path) -> None:
 
 if __name__ == '__main__':
     args = parse_cl_paths(
-        {'--pubdir': '-p', '--summary_dir': '-s', '--plots_dir': '-l'}
+        {'--pubdir': '-p', '--summary_dir': '-s'}
     )
     gen_summary(
-        pubdir=args.pubdir, summary_dir=args.summary_dir, plots_dir=args.plots_dir
+        pubdir=args.pubdir, summary_dir=args.summary_dir
     )
