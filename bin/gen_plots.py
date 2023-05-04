@@ -8,7 +8,7 @@ import scanpy as sc
 def gen_plots() -> None:
     # The only thing staged in by Nextflow should be the anndata file 
     # (extension .h5ad). Use next() to get it out of the glob generator
-    adata_path = next(Path().rglob('*.h5ad'))
+    adata_path = next(Path().resolve().rglob('*.h5ad'))
     adata = sc.read_h5ad(adata_path)
 
     # Establish plots directory and set the figure directory in sc 

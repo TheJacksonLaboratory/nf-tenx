@@ -12,7 +12,7 @@ from scipy.io import mmwrite
 def prepare_seurat(total_counts_dir: Path) -> None:
     # The only thing staged in by Nextflow should be the anndata file (extension .h5ad).
     # Use next() to get it out of the glob generator
-    adata_path = next(Path().rglob('*.h5ad'))
+    adata_path = next(Path().resolve().rglob('*.h5ad'))
     adata = sc.read_h5ad(adata_path)
 
     # Set a layer 'total_counts' equal to adata.X for easier iteration

@@ -26,8 +26,9 @@ def annotate(output_path: Path) -> str:
     readers = {filt: sc.read_10x_h5, velo: sc.read_loom, ref: pd.read_parquet}
 
     # Read files into a dict of lists using dict-comprehension
+    cwd = Path().resolve()
     mtx_by_ext = {
-        pattern: tuple(reader(path) for path in Path().rglob(f'{pattern}'))
+        pattern: tuple(reader(path) for path in cwd.rglob(pattern))
         for pattern, reader in readers.items()
     }
 
@@ -44,7 +45,7 @@ def annotate(output_path: Path) -> str:
             f'pipeline, only one file should match each pattern:\n'
             + '\n'.join(too_many)
         )
-
+    
     adata = mtx_by_ext[filt][0]
 
     # Add velocyto layers to adata if it's there

@@ -11,17 +11,15 @@ from jinja2 import Environment, FileSystemLoader
 def gen_summary(pubdir: Path, summary_dir: Path) -> None:
     # Get the plots and summary files
     plot_paths = tuple(Path().rglob('*.svg'))
-    summary_files = tuple(summary_dir.iterdir())
 
     # The CSVs contain information, so get those separately
     extracted_info = {}
-    csvs = (path for path in summary_files if path.suffix == '.csv')
-    for csv in csvs:
+    for csv in summary_dir.rglob('*.csv'):
         with csv.open() as f:
             extracted_info[csv.name] = tuple(DictReader(f))
 
     # Get the flowchart path from the summary files
-    flowchart_path = next(path for path in summary_files if path.suffix == '.svg')
+    flowchart_path = next(summary_dir.rglob('*.svg'))
 
     # Use the name of the file and symlink to the actual flowchart to expose to HTML summary
     Path(flowchart_path.name).symlink_to(flowchart_path)
@@ -38,7 +36,7 @@ def gen_summary(pubdir: Path, summary_dir: Path) -> None:
         'Tools Used',
     ]
 
-    templates_dir = next(path for path in summary_files if 'templates' in path.name)
+    templates_dir = next(summary_dir.glob('*templates*'))
     # Create template and HTML and write to a file
     env = Environment(loader=FileSystemLoader(templates_dir))
     template = env.get_template((next(path.name for path in templates_dir.iterdir())))

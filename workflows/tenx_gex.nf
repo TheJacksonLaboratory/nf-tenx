@@ -13,7 +13,7 @@ include { EXTRACT_FILES } from '../modules/extract.nf'
 include { VELOCYTO } from '../modules/velocyto.nf'
 include { ANNOTATE_MTX } from '../modules/annotate.nf'
 include { CONVERT_TO_SEURAT} from '../modules/seurat.nf'
-include { GEN_PLOTS; GEN_SUMMARY } from '../modules/gen_info.nf'
+include { GEN_SUMMARY } from '../modules/gen_info.nf'
 include { FILTER_AMBIENT_RNA } from '../modules/ambient_rna.nf'
 
 workflow TENX_GEX {
@@ -44,8 +44,7 @@ workflow TENX_GEX {
     }
 
     CONVERT_TO_SEURAT(adata)
-    GEN_PLOTS(adata)
-    GEN_SUMMARY(GEN_PLOTS.out, summary_dir)
+    GEN_SUMMARY(adata, summary_dir)
 
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)
 

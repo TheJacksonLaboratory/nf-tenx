@@ -50,7 +50,7 @@ def extract_files(
     # directory that match the pattern. Each list should have just one
     # element
     extracted_paths = {
-        pattern: tuple(direc.rglob(pattern))
+        pattern: tuple(direc.resolve().rglob(pattern))
         for pattern, direc in dir_to_pattern.items()
     }
 
