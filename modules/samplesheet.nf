@@ -23,8 +23,11 @@ def collect_fastqs(LinkedHashMap record) {
   // If that matches as library ID or library ID + lane combination, then add it.
   // Additionally, if `use_undetermined` is specified, add the corresponding
   // Undetermined reads as well
-  for(fqp in record.fastq_paths) {
-    for(lib in record.libraries) {
+  // 2023-05-04: swapped order of fqp and lib to account for same exact libs in
+  // different fqp
+  for(lib in record.libraries) {
+    lib_prefixes = []
+    for(fqp in record.fastq_paths) {
       for(lane in lanes) {
         file(fqp).eachFile {
 
@@ -33,22 +36,21 @@ def collect_fastqs(LinkedHashMap record) {
             if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
 
             def prefix = (file(fastq).getName() =~ /(.*)_S\d+_(L\d+_)?[IR]\d+_001.fastq.gz/)[0][1]
-            if (!(prefix in prefixes)) { prefixes.add(prefix) }
+            lib_prefixes.add(prefix)
 
           } else if(record.get("use_undetermined", false) && fastq =~ /Undetermined.*L${lane}.*fastq.*/ ) {
             fastqs.add(fastq.toString())
 
-            prefix = "Undetermined"
-            if (!(prefix in prefixes)) { prefixes.add(prefix) }
+            lib_prefixes.add("Undetermined")
           } 
-
         }
       }
     }
+    prefixes += lib_prefixes.unique()
   }
   record["fastqs"] = fastqs.unique()
-  record["prefixes"] = prefixes.unique()
-  
+  record["prefixes"] = prefixes
+
   return(record)
 }
 
@@ -71,7 +73,7 @@ def read_n_reads(LinkedHashMap record, f) {
 
 
 def construct_output_id(LinkedHashMap record) {
-    unique_libs = record.libraries.unique()
+    unique_libs = record.libraries.unique(false)
     cleaned_name = record.sample_name.tr(" _", "\0-")
     record["output_id"] = [unique_libs.join("-"), cleaned_name].join("_")
     return(record)
