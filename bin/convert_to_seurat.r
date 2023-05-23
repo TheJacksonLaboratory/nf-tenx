@@ -5,8 +5,8 @@ library(SeuratObject)
 
 # Get the conversion directory from the command line
 command_line_args <- commandArgs(trailingOnly = TRUE)
-total_counts_dir <- file.path(command_line_args[2])
-output_path <- file.path(command_line_args[3])
+total_counts_dir <- command_line_args[2]
+output_path <- paste(total_counts_dir, "_annotated.rds", sep = "")
 
 # Read in raw data and gene/cell metadata
 raw_data <- Read10X(total_counts_dir)

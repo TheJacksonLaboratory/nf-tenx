@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
 import gzip
+from glob import glob
 from io import BytesIO
 from pathlib import Path
 
 import scanpy as sc
-from arg_utils import parse_cl_paths
+from arg_utils import parse_cl
 from scipy.io import mmwrite
 
 
 def prepare_seurat(total_counts_dir: Path) -> None:
-    # The only thing staged in by Nextflow should be the anndata file (extension .h5ad).
-    # Use next() to get it out of the glob generator
-    adata_path = next(Path().resolve().rglob('*.h5ad'))
+    # The only thing staged in by Nextflow should be the anndata file (extension .h5ad)
+    adata_path = glob('**/*.h5ad', recursive=True)[0]
     adata = sc.read_h5ad(adata_path)
 
     # Set a layer 'total_counts' equal to adata.X for easier iteration
@@ -62,5 +62,5 @@ def prepare_seurat(total_counts_dir: Path) -> None:
 
 
 if __name__ == '__main__':
-    args = parse_cl_paths({'--total_counts_dir': '-t'})
+    args = parse_cl(('--total_counts_dir', '-t', Path))
     prepare_seurat(args.total_counts_dir)

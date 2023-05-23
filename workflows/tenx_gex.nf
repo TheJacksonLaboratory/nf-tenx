@@ -10,11 +10,11 @@ include { FASTQC; MULTIQC } from '../modules/qc.nf'
 include { SEQUENCING_SATURATION } from '../modules/saturation.nf'
 include { DUMP_METADATA } from '../modules/metadata.nf'
 include { EXTRACT_FILES } from '../modules/extract.nf'
-include { VELOCYTO } from '../modules/velocyto.nf'
+include { VELOCYTO; TEST } from '../modules/velocyto.nf'
 include { ANNOTATE_MTX } from '../modules/annotate.nf'
-include { CONVERT_TO_SEURAT} from '../modules/seurat.nf'
+include { PREPARE_SEURAT; CONVERT_TO_SEURAT } from '../modules/seurat.nf'
 include { GEN_SUMMARY } from '../modules/gen_info.nf'
-include { FILTER_AMBIENT_RNA } from '../modules/ambient_rna.nf'
+include { FILTER_AMBIENT_RNA; MIMIC_CELLRANGER } from '../modules/ambient_rna.nf'
 
 workflow TENX_GEX {
     take: gex_records
@@ -26,14 +26,15 @@ workflow TENX_GEX {
     CELLRANGER_COUNT(gex_records)
     EXTRACT_FILES(CELLRANGER_COUNT.out.cellranger_outputs)
     
-    FILTER_AMBIENT_RNA(EXTRACT_FILES.out.cellranger, EXTRACT_FILES.out.genome_csv)
+    FILTER_AMBIENT_RNA(EXTRACT_FILES.out.cellranger)
+    MIMIC_CELLRANGER(FILTER_AMBIENT_RNA.out)
 
-    matrices_ch = EXTRACT_FILES.out.cellranger.mix(FILTER_AMBIENT_RNA.out)
+    matrices_ch = EXTRACT_FILES.out.cellranger.mix(MIMIC_CELLRANGER.out)
 
     if (params.calc_rna_velo) {
         summary_dir = params.summaries_dir / 'with_rna_velo'
-        
-        VELOCYTO(matrices_ch, EXTRACT_FILES.out.genes_gtf)    
+
+        VELOCYTO(matrices_ch)    
         adata = ANNOTATE_MTX(VELOCYTO.out)
     }
 
@@ -43,7 +44,8 @@ workflow TENX_GEX {
         adata = ANNOTATE_MTX(matrices_ch)
     }
 
-    CONVERT_TO_SEURAT(adata)
+    PREPARE_SEURAT(adata)
+    CONVERT_TO_SEURAT(PREPARE_SEURAT.out)
     GEN_SUMMARY(adata, summary_dir)
 
     SEQUENCING_SATURATION(CELLRANGER_COUNT.out.cellranger_outputs)

@@ -4,3 +4,4 @@ pubdir
 tests/test_data/*fastq.gz
 .vscode
 **/__pycache__
+**/*test*

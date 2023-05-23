@@ -7,14 +7,14 @@ library(DropletUtils)
 soup_object <- load10X(getwd())
 
 # Estimate level of background contamination
-soup_object <- autoEstCont(soup_object)
+soup_object <- autoEstCont(soup_object, soupQuantile = 0.1, tfidfMin = 0.1)
 
 # Adjust counts accordingly
 output <- adjustCounts(soup_object)
 
 # Glob for the features TSV, which containes gene IDs and symbols.
 # There should only be one, so just pick the first element
-genes_file <- Sys.glob("*filtered*feature*matrix*/*features*.tsv.gz")
+genes_file <- Sys.glob("*filtered*feature*matrix*/*features*.tsv.gz")[1]
 
 # Read the file into a dataframe (note the sep argument and the header
 # argument per the format of the 10x file)

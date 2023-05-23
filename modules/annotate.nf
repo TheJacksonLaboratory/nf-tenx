@@ -8,6 +8,7 @@ process ANNOTATE_MTX {
     tag "$record.output_id"
     executor 'local'
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
+    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
 
     input:
     tuple val(record), path('*'), val(tool)
@@ -17,6 +18,6 @@ process ANNOTATE_MTX {
 
     script:
     """
-    annotate.py --output_path=${record.output_id}_annotated_${tool}_mtx.h5ad
+    annotate.py --record_id=${record.output_id} --tool=${tool} --annots_dir=${params.annots_dir}
     """
 }
