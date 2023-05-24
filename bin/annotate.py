@@ -28,7 +28,8 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
     # globbing of patterns. Each key is a pattern and each value is a
     # tuple of anndata objects whose file names match that pattern
     data_mtxs = {
-        pattern: tuple(reader(path) for path in glob(f'**/{pattern}', recursive=True))
+        pattern: tuple(reader(path)
+                       for path in glob(f'**/{pattern}', recursive=True))
         for pattern, reader in mtx_readers.items()
     }
 
@@ -103,7 +104,7 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
             adata.var[gene_type] = (
                 adata.var['gene_ids']  # Match by gene ID
                 .str.upper()  # Convert gene IDs to uppercase
-                .isin(ref_df.loc[ref_df[gene_type], 'ensembl_gene_id'])
+                .isin(ref_df.loc[ref_df[gene_type], 'ensembl_gene_id'].str.upper())
             )  # If the gene ID matches those in the gene type column of
             # the reference dataframe, mark the gene as true for that
             # gene type
@@ -113,7 +114,8 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
     adata.obs_names_make_unique()
 
     # Calculate QC metrics on annotated gene types
-    sc.pp.calculate_qc_metrics(adata=adata, qc_vars=all_gene_types, inplace=True)
+    sc.pp.calculate_qc_metrics(
+        adata=adata, qc_vars=all_gene_types, inplace=True)
 
     # Calculate predicted doublets and doublet scores, save in obs
     clf = dd.BoostClassifier()
@@ -137,7 +139,8 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
 if __name__ == '__main__':
     # Get command-line arguments
     args = parse_cl(
-        ('--record_id', '-r', str), ('--tool', '-t', str), ('--annots_dir', '-a', Path)
+        ('--record_id', '-r', str), ('--tool',
+                                     '-t', str), ('--annots_dir', '-a', Path)
     )
 
     # Annotate the .h5 file
