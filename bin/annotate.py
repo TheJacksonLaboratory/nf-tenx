@@ -6,17 +6,17 @@ from shutil import copy
 
 import pandas as pd
 import scanpy as sc
-import scrublet as scr
+import doubletdetection as dd
 from arg_utils import parse_cl
 
 
 def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
     """
     This function takes a filtered feature matrix file and annotates it,
-    saving the result in the input parameter output_path.
+    saving the result as '{record_id}_{tool}_annotated.h5ad'.
 
-    It annotates various gene types as well as doublet scoring by scrublet,
-    also calculating QC metrics while it's at it.
+    It annotates genes with type and cells with doublet scores (via
+    DoubletDetection), also calculating QC metrics while it's at it.
     """
     # Define glob patterns for each matrix type
     filt = '*filtered*matrix*.h5'
@@ -115,11 +115,13 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
     # Calculate QC metrics on annotated gene types
     sc.pp.calculate_qc_metrics(adata=adata, qc_vars=all_gene_types, inplace=True)
 
-    # # Calculate predicted doublets and doublet scores
-    # scrub = scr.Scrublet(adata.X)
-    # doublet_scores, predicted_doublets = scrub.scrub_doublets()
-    # adata.obs['doublet_score'] = doublet_scores
-    # adata.obs['doublet_predicted'] = predicted_doublets
+    # Calculate predicted doublets and doublet scores, save in obs
+    clf = dd.BoostClassifier()
+    labels = clf.fit(adata.X).predict()
+    scores = clf.doublet_score()
+
+    adata.obs['doublet_score'] = scores
+    adata.obs['doublet_predicted'] = labels
 
     # Save anndata object to h5ad
     output_path = Path(f'{record_id}_{tool}_annotated.h5ad')
