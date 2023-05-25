@@ -54,14 +54,15 @@ The following parameters can optionally be passed in for single cell gene expres
   This directory must contain one or more files that can be read into `pandas.DataFrame` objects. The files must meet the following requirements in order to work:
   - The files must be one of the following file-types: `.parquet`, `.csv`, `.feather`, or `.pickle`. More file types will be supported in the future.
   - When read by `pandas` into a `pandas.DataFrame`, there must be a column of Ensembl gene IDs called "`ensembl_gene_id`". There must also be one or more `boolean` columns for each type of gene you'd like annotated. For example, in the default `.parquet` files that come with this pipeline, there is a column called `mitochondrial` with `boolean` values for all the genes in the genome.
-  - The file name must contain a genome (such as `GRCh38`) and an accepted file extension. It may contain other strings (for example, one of the pipeline's defaults is called [`GRCh38.p13.parquet`](assets/ref_annotations/GRCh38.p13.parquet)). Note that only file names containing genomes corresponding to the reference genome will be used as gene annotations For example, if your sample's reference genome is `GRCh38` and the directory you pass in contains:
+  - The file name must contain a genome (such as `GRCh38`) and an accepted file extension. It may contain other strings (for example, one of the pipeline's defaults is called [`GRCh38.p13.parquet`](assets/ref_annotations/GRCh38.p13.parquet)). Note that only file names containing genomes corresponding to the sample's reference genomes will be used as gene annotations. For example, if your sample's reference genomes are `GRCh38` and `mRatBN7`, and the directory you pass in contains:
     - `GRCh38.feather`
     - `GRCh37.csv`
     - `GRCh38_other_genes.p13.pickle`
     - `GRCm39.parquet`
     - `extraneous_dataframe.pickle`
+    - `mRatBN7.2.csv`
 
-    the files `GRCh38.feather` and `GRCh38_other_genes.p13.pickle` will be used to annotate your data based on the gene IDs in your data and the `ensembl_gene_id` column in the files. Again, this will work with any number of files and species.
+    the files `GRCh38.feather`, `GRCh38_other_genes.p13.pickle`, and `mRatBN7.2.csv` will be used to annotate your data based on the correspondence between the gene IDs in your data and the `ensembl_gene_id` column in the files. Again, this will work with any number of files and species.
 
 ## Samplesheet specifics
 The samplesheet format expects a root level YAML sequence or JSON array:
