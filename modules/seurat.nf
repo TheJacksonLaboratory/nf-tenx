@@ -5,7 +5,7 @@ vim: syntax=groovy
 */
 
 process PREPARE_SEURAT {
-    tag "$record.output_id"
+    tag "$record.output_id-$tool"
     executor 'local'
     container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
     
@@ -24,7 +24,7 @@ process PREPARE_SEURAT {
 }
 
 process CONVERT_TO_SEURAT {
-    tag "$record.output_id"
+    tag "$record.output_id-$tool"
     executor 'local'
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
     container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/r-seurat-base-soupx-dropletutils_latest.sif'

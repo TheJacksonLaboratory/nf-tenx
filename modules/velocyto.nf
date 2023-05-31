@@ -6,7 +6,7 @@ vim: syntax=groovy
 */
 
 process VELOCYTO {
-    tag "$record.output_id"
+    tag "$record.output_id-$tool"
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", pattern: "*velocyto*.loom", mode: "copy"
     label "velocyto"
     container 'docker://mparikhbroad/velocyto'
@@ -18,27 +18,9 @@ process VELOCYTO {
     tuple val(record), path('*', includeInputs: true), val(tool)
 
     script:
-    genes_gtf = 'velocyto_genes.gtf'
     """
-    velocyto run10x --samtools-threads=${task.cpus} --logic=ObservedSpanning10X . outs/${genes_gtf}
+    velocyto run10x --samtools-threads=${task.cpus} --logic=ObservedSpanning10X . ${record.reference_path}/**/genes.gtf
     mv **/*.loom ${record.output_id}_${tool}_velocyto.loom
     rmdir velocyto
-    """
-}
-
-process TEST {
-    tag "$record.output_id"
-    publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", pattern: "*", mode: "copy"
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
-
-    input:
-    tuple val(record), path('*'), val(tool)
-
-    output:
-    tuple val(record), path('*', includeInputs: true), val(tool)
-
-    script:
-    """
-    test.py
     """
 }

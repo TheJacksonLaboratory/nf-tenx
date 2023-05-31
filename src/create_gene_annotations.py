@@ -75,7 +75,7 @@ for host, ds in ensembl_hosts_dsets.items():
     # comprehension and globbing
     cc_sr_paths = {
         gene_type.replace('*', '_'): next(
-            Path().glob(f'*{ds.removesuffix("_gene_ensembl")}*/*{gene_type}*')
+            Path.cwd().glob(f'*{ds.removesuffix("_gene_ensembl")}*/*{gene_type}*')
         )
         for gene_type in ('cell*cycle', 'stress*response')
     }

@@ -28,7 +28,10 @@ params.annots_dir = params.getOrDefault(
     params.assets_dir / "ref_annotations"
 )
 params.summaries_dir = params.assets_dir / "summaries"
-params.calc_rna_velo = ""
+params.calc_rna_velo = params.getOrDefault(
+    "calc_rna_velo",
+    false
+)
 
 /*
 ========================================================================================

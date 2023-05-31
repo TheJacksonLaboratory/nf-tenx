@@ -6,38 +6,22 @@ vim: syntax=groovy
 */
 
 process FILTER_AMBIENT_RNA {
-    tag "$record.output_id"
+    tag "$record.output_id-soupx"
     label 'alternative_count'
+    publishDir "${params.pubdir}/${record.output_id}/annotations", pattern: "soupx/*filtered*", mode: "copy"
     container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/r-seurat-base-soupx-dropletutils_latest.sif'
 
     input:
-    tuple val(record), path('*'), val(tool)
+    tuple val(record), path('*', stageAs: "cellranger/*")
 
     output:
-    tuple val(record), path('*', includeInputs: true), val('soupx')
-
-    script:
-    soupx_dir = 'soupx'
-    genome_csv = 'genes_genome.csv'
-    """
-    mkdir ${soupx_dir}
-    filter_ambient_rna.r --args ${genome_csv} ${soupx_dir}
-    """
-}
-
-process MIMIC_CELLRANGER {
-    tag "$record.output_id"
-    publishDir "${params.pubdir}/${record.output_id}/annotations", pattern: "soupx/*filtered*", mode: "copy"
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
-
-    input:
-    tuple val(record), path('*'), val(tool)
-
-    output:
-    tuple val(record), path("${tool}/*", includeInputs: true), val(tool)
+    tuple val(record), path('soupx/*', includeInputs: true), val("soupx")
 
     script:
     """
-    mimic_cellranger.py --soupx_dir=${tool}
+    mkdir soupx
+    filter_ambient_rna.r --args ${record.tool_version} cellranger soupx
+    rm -r cellranger/*filtered*
+    mv cellranger/* soupx
     """
 }

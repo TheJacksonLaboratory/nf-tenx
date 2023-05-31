@@ -91,7 +91,7 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
         # The boolean columns of the reference dataframes are the gene
         # annotations, so get them with set comprehension
         current_gene_types = {
-            col for col in ref_df.columns if ref_df[col].dtype == bool
+            f'{col}\n' for col in ref_df.columns if ref_df[col].dtype == bool
         }
 
         # Add the gene types of the current iteration to the set
@@ -139,8 +139,9 @@ def annotate(record_id: str, tool: str, annots_dir: Path) -> str:
 if __name__ == '__main__':
     # Get command-line arguments
     args = parse_cl(
-        ('--record_id', '-r', str), ('--tool',
-                                     '-t', str), ('--annots_dir', '-a', Path)
+        ('--record_id', '-r', str),
+        ('--tool', '-t', str),
+        ('--annots_dir', '-a', Path)
     )
 
     # Annotate the .h5 file

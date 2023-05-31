@@ -2,49 +2,65 @@
 
 library(SoupX)
 library(DropletUtils)
+library(rhdf5)
 
-# Load data and estimate soup profile
-soup_object <- load10X(getwd())
+# Get command-line arguments and store in variables
+command_line_args <- commandArgs(trailingOnly = TRUE)
+cellranger_version <- command_line_args[2]
+cellranger_dir <- command_line_args[3]
+soupx_dir <- command_line_args[4]
 
-# Estimate level of background contamination
-soup_object <- autoEstCont(soup_object)
+# Load data, estimate soup profile and background contamination, adjust counts
+soup <- load10X(cellranger_dir)
+soup <- autoEstCont(soup, tfidfMin = 0.1, soupQuantile = 0.1)
+filtered_counts <- adjustCounts(soup)
 
-# Adjust counts accordingly
-output <- adjustCounts(soup_object)
-
-# Glob for the features TSV, which containes gene IDs and symbols.
-# There should only be one, so just pick the first element
-genes_file <- Sys.glob("*filtered*feature*matrix*/*features*.tsv.gz")[1]
-
-# Read the file into a dataframe (note the sep argument and the header
-# argument per the format of the 10x file)
+# Read the features.tsv file into a dataframe
+genes_file <- Sys.glob("**/*filtered*feature*matrix*/*features*.tsv.gz")[1]
 gene_info <- read.csv(genes_file, sep = "\t", header = FALSE)
 
-# A CSV mapping each gene to its genome should have been passed in as a
-# command-line argument
-command_line_args <- commandArgs(trailingOnly = TRUE)
-genes_by_genome <- read.csv(command_line_args[2])
+# Get first digit of cell ranger version
+cellranger_version <- strsplit(
+    cellranger_version,
+    split = ".",
+    fixed = TRUE
+)[[1]][1]
 
-output_dir <- command_line_args[3]
+# write10XCounts takes in either "2" or "3" for the version parameter, so set
+# cellranger_version manually because if it is not "2" or "3", write10XCounts
+# just defaults to "2"
+if (cellranger_version >= "3") {
+    cellranger_version <- "3"
+} else {
+    cellranger_version <- "2"
+}
 
-# Use the droplet-utils writing function to write the file,
-# manually setting the gene IDs, symbols, and  with the dataframes loaded above
-write10xCounts(
-    file.path(output_dir, "filtered_matrix.h5"),
-    output,
-    gene.id = gene_info$V1,
-    gene.symbol = gene_info$V2,
-    gene.type = gene_info$V3,
-    genome = genes_by_genome,
-    version = "3"
-)
+# Get the genomes out of the molecule_info.h5 file that cellranger generates
+mol_file <- Sys.glob("**/*molecule*info*.h5")[1]
+mol_info <- H5Fopen(mol_file)
+genomes <- mol_info$features$genome
 
-write10xCounts(
-    file.path(output_dir, "filtered_matrix"),
-    output,
-    gene.id = gene_info$V1,
-    gene.symbol = gene_info$V2,
-    gene.type = gene_info$V3,
-    genome = genes_by_genome,
-    version = "3"
-)
+# Cellranger's filtered matrix comes as a .h5 file and as a matrix market
+# directory. Loop over the corresponding extensions and save the soupx matrix
+# with the same name as cellranger's
+extensions <- c("*.h5", "")
+for (ext in extensions) {
+    # Generate the glob pattern and glob
+    pattern <- paste("**/*filtered*matrix", ext, sep = "")
+    cr_filt_mtx <- Sys.glob(pattern)[1]
+
+    # Get the name of the cellranger file and save the soupx matrix to the
+    # soupx_dir with the same name
+    file_name <- basename(cr_filt_mtx)
+    soupx_path <- file.path(soupx_dir, file_name)
+    write10xCounts(
+        soupx_path,
+        filtered_counts,
+        gene.id = gene_info$V1,
+        gene.symbol = gene_info$V2,
+        gene.type = gene_info$V3,
+        genome = genomes,
+        version = cellranger_version
+    )
+}
+H5Fclose(mol_info)

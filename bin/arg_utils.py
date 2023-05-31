@@ -26,5 +26,5 @@ def parse_cl(*expected_args: tuple[str, str, type]) -> Namespace:
     for long_name, short_name, t in expected_args:
         parser.add_argument(long_name, short_name, type=t)
 
-    # Return the resulting Namepsace object
+    # Return the resulting Namespace object
     return parser.parse_args()

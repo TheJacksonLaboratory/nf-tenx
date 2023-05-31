@@ -109,6 +109,7 @@ process CELLRANGER_COUNT {
     output:
       tuple val(record), path("${record.tool_pubdir}/*"), emit: cellranger_outputs
       tuple val(record), path("${record.tool_pubdir}/*"), emit: hash_dir
+      tuple val(record), path("${record.tool_pubdir}/*"), val("cellranger"), emit: annot_inputs
       tuple val(record), path("${record.tool_pubdir}/*{metrics,summary}*", glob: true), emit: metrics
 
     script:
