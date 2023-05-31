@@ -12,7 +12,7 @@ soupx_dir <- command_line_args[4]
 
 # Load data, estimate soup profile and background contamination, adjust counts
 soup <- load10X(cellranger_dir)
-soup <- autoEstCont(soup, tfidfMin = 0.1, soupQuantile = 0.1)
+soup <- autoEstCont(soup)
 filtered_counts <- adjustCounts(soup)
 
 # Read the features.tsv file into a dataframe
