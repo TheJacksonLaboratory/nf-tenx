@@ -7,7 +7,7 @@ vim: syntax=groovy
 process PREPARE_SEURAT {
     tag "$record.output_id-$tool"
     executor 'local'
-    container 'singlecell/python3.10-scrna-annotation:latest'
+    container 'library://singlecell/python3.10-scrna-annotation:latest'
     
     input:
     tuple val(record), path('*'), val(tool)
