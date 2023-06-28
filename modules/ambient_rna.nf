@@ -9,7 +9,7 @@ process FILTER_AMBIENT_RNA {
     tag "$record.output_id-soupx"
     label 'alternative_count'
     publishDir "${params.pubdir}/${record.output_id}/annotations", pattern: "soupx/*filtered*", mode: "copy"
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/r-seurat-base-soupx-dropletutils_latest.sif'
+    container 'library://singlecell/r4.2-soupx-seurat:latest'
 
     input:
     tuple val(record), path('*', stageAs: "cellranger/*")
