@@ -8,7 +8,7 @@ process ANNOTATE_MTX {
     tag "$record.output_id-$tool"
     executor 'local'
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy", pattern: "*.h5ad"
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
+    container 'library://singlecell/python3.10-scrna-annotation:latest'
 
     input:
     tuple val(record), path('*'), val(tool)
