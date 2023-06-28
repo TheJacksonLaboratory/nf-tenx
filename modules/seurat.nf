@@ -7,7 +7,7 @@ vim: syntax=groovy
 process PREPARE_SEURAT {
     tag "$record.output_id-$tool"
     executor 'local'
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/py_w_loompy.sif'
+    container 'singlecell/python3.10-scrna-annotation:latest'
     
     input:
     tuple val(record), path('*'), val(tool)
@@ -27,7 +27,7 @@ process CONVERT_TO_SEURAT {
     tag "$record.output_id-$tool"
     executor 'local'
     publishDir "${params.pubdir}/${record.output_id}/annotations/${tool}", mode: "copy"
-    container '/sc/service/analysis/tmp/pipeline_development/nextflow-dev/containers/r-seurat-base-soupx-dropletutils_latest.sif'
+    container 'library://singlecell/r4.2-soupx-seurat:latest'
     
     input:
     tuple val(record), path('*'), val(tool)
