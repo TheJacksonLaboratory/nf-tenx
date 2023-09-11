@@ -4,9 +4,9 @@ from glob import glob
 from pathlib import Path
 from shutil import copy
 
+import doubletdetection as dd
 import pandas as pd
 import scanpy as sc
-import doubletdetection as dd
 from arg_utils import parse_cl
 
 
