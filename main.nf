@@ -14,15 +14,24 @@ nextflow.enable.dsl = 2
 
 params.pubdir = params.getOrDefault("pubdir", "pubdir")
 params.publish_fastqs = params.getOrDefault("publish_fastqs", true)
+params.assets_dir = workflow.projectDir / "assets"
 params.probe_dir = params.getOrDefault(
-    "probe_dir", 
-    "${workflow.projectDir}/assets/probe_sets"
+    "probe_dir",
+    params.assets_dir / "probe_sets"
 )
 params.tag_list = params.getOrDefault(
     "tag_list",
-    file("${workflow.projectDir}/assets/tags.csv", checkIfExists: true)
+    file(params.assets_dir / "tags.csv", checkIfExists: true)
 )
-
+params.annots_dir = params.getOrDefault(
+    "annots_dir",
+    params.assets_dir / "ref_annotations"
+)
+params.summaries_dir = params.assets_dir / "summaries"
+params.calc_rna_velo = params.getOrDefault(
+    "calc_rna_velo",
+    false
+)
 
 /*
 ========================================================================================
