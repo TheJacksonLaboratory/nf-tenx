@@ -87,7 +87,7 @@ cli options are utilized.
 Check out the example samplesheets under the `examples` directory.
 
 ## Tools available on JAXReg
-**Updated 2021-12-02**
+**Updated 2023-10-06**
 
 | Tool | Version | Notes |
 |---|---|---|
@@ -110,9 +110,11 @@ Check out the example samplesheets under the `examples` directory.
 | | 6.0.2 | |
 | | 6.1.1 | |
 | | 7.0.0 | |
+| | 7.1.0 | |
 | CellRanger ATAC | 1.1.0 | do not use, barcode doublet issue |
 | | 1.2.0 | |
 | | 2.0.0 | |
+| | 2.1.0 | |
 | CellRanger ARC | 1.0.0 | |
 | | 1.0.1 | |
 | | 2.0.0 | |
@@ -122,6 +124,7 @@ Check out the example samplesheets under the `examples` directory.
 | | 1.2.2 | |
 | | 1.3.0 | |
 | | 2.0.0 | |
+| | 2.1.0 | |
 
 ## Testing
 
