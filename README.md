@@ -125,6 +125,7 @@ Check out the example samplesheets under the `examples` directory.
 | | 1.3.0 | |
 | | 2.0.0 | |
 | | 2.1.0 | |
+| CITEseq Count | 1.4.5 | |
 
 ## Testing
 
