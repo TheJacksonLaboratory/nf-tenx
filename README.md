@@ -87,7 +87,7 @@ cli options are utilized.
 Check out the example samplesheets under the `examples` directory.
 
 ## Tools available on JAXReg
-**Updated 2023-10-06**
+**Updated 2023-10-20**
 
 | Tool | Version | Notes |
 |---|---|---|
