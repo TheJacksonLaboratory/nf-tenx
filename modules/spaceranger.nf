@@ -57,6 +57,8 @@ process SPACERANGER_COUNT {
     script:
     main_options = construct_vis_cli_options(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
+    serial_prefix = record.slide.substring(0, 6)
+    spatial_dir = "${record.tool_pubdir}/spatial"
     """
     spaceranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
@@ -66,6 +68,18 @@ process SPACERANGER_COUNT {
     mv ${record.output_id}/outs/* ${record.tool_pubdir}/
     find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool_pubdir}/spatial/alignment_summary.json \\;
+
+    # new 2024-01-02
+    # spaceranger containers wont have gprreader on PATH so build its path manually
+    sr_root=\$(which spaceranger | xargs dirname)
+    gprreader="\${sr_root}/lib/bin/gprreader"
+    \$gprreader fetch ${record.slide} ${spatial_dir} --area=${record.area}
+
+    # the above unfortunately doesn't get the raw GPR file, but just a JSON representation
+    # below is to pull the raw GPR
+
+    url_base="http://s3-us-west-2.amazonaws.com/10x.spatial-slides/gpr"
+    wget -O "${spatial_dir}/${record.slide}.gpr" "\${url_base}/${serial_prefix}/${record.slide}.gpr"
     """
 }
 
@@ -103,6 +117,9 @@ process IMAGE_PROCESS {
     fi
     if [ -f "${record.manual_alignment}" ]; then
         cp ${record.manual_alignment} .
+    fi
+    if [ -f "${record.raw_image}" ]; then
+        cp ${record.raw_image} .
     fi
     md5sum * > hashes_img.md5
     """
