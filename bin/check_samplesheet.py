@@ -260,7 +260,7 @@ class AssayChecker:
                     f"Cannot find probe_set specified [{probe_set}] under {probe_loc}"
                 )
         elif add_msg:
-            print_error(add_msg)
+            print_error(record_id, add_msg)
 
 
     def additional_checks(self, record_id, record):
