@@ -49,8 +49,11 @@ def construct_gex_cli_options(record) {
     // no bam
     // --no-bam evaluates to true is present at all
     major_version = record.tool_version[0].toInteger()
-    if ((record.no_bam) && (major_version >= 5)) {
+    if ((record.no_bam) && (major_version >= 5) && (major_version < 8)) {
         options["--no-bam"] = null
+    }
+    if ((major_version >= 8)) {
+        options["--create-bam"] = record.no_bam ? false : true
     }
 
     // need to be super careful here
