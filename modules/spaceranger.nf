@@ -30,7 +30,10 @@ def construct_vis_cli_options(record) {
     if (record.manual_alignment) { options["--loupe-alignment"] = record.manual_alignment }
     if (record.slide_file) { options["--slidefile"] = record.slide_file }
     if (record.requires_rotation) { options["--reorient-images"] = null }
-    if (record.no_bam) { options["--no-bam"] = null }
+
+    major_version = record.tool_version[0].toInteger()
+    if ((record.no_bam) && (major_version < 3)) { options["--no-bam"] = null }
+    if ((major_version >= 3)) { options["--create-bam"] = record.no_bam ? false : true }
 
     return(join_map_items(options))
 }
