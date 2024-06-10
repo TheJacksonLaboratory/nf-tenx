@@ -60,8 +60,12 @@ process SPACERANGER_COUNT {
     script:
     main_options = construct_vis_cli_options(record)
     localmem = Math.round(task.memory.toGiga() * 0.95)
+
     serial_prefix = record.slide.substring(0, 6)
     spatial_dir = "${record.tool_pubdir}/spatial"
+
+    visium_hd_prefixes = ["H1", "SJ", "14072023", "14082023", "26062023", "RD", "UN"]
+    is_visium_hd = visium_hd_prefixes.collect { serial_prefix.startsWith(it) }.any()
     """
     spaceranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
@@ -69,20 +73,32 @@ process SPACERANGER_COUNT {
     mv ${record.output_id}/_* ${record.tool_pubdir}/_files
     mv ${record.output_id}/*.tgz ${record.tool_pubdir}/
     mv ${record.output_id}/outs/* ${record.tool_pubdir}/
-    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
-    find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool_pubdir}/spatial/alignment_summary.json \\;
 
-    # new 2024-01-02
-    # spaceranger containers wont have gprreader on PATH so build its path manually
-    sr_root=\$(which spaceranger | xargs dirname)
-    gprreader="\${sr_root}/lib/bin/gprreader"
-    \$gprreader fetch ${record.slide} ${spatial_dir} --area=${record.area}
+    # new 2024-06-10
+    # Visium HD doesn't utilize GPR files (uses VLF)
+    # Moreover, adding symlinks in the deliverable for users
+    if [[ "${is_visium_hd}" == "true" ]]; then
+        cd ${record.tool_pubdir}
+        ln -s binned_outputs/square_008um/filtered_feature_bc_matrix .
+        ln -s binned_outputs/square_008um/filtered_feature_bc_matrix.h5 .
+        ln -s binned_outputs/square_008um/raw_feature_bc_matrix .
+        ln -s binned_outputs/square_008um/raw_feature_bc_matrix.h5 .
+        cd -
+    else
+        find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
+        find ${record.output_id}/SPATIAL_RNA_COUNTER_CS/ -type f -name "alignment_metrics.json" -exec mv {} ${record.tool_pubdir}/spatial/alignment_summary.json \\;
+        # new 2024-01-02
+        # spaceranger containers wont have gprreader on PATH so build its path manually
+        sr_root=\$(which spaceranger | xargs dirname)
+        gprreader="\${sr_root}/lib/bin/gprreader"
+        \$gprreader fetch ${record.slide} ${spatial_dir} --area=${record.area}
 
-    # the above unfortunately doesn't get the raw GPR file, but just a JSON representation
-    # below is to pull the raw GPR
+        # the above unfortunately doesn't get the raw GPR file, but just a JSON representation
+        # below is to pull the raw GPR
 
-    url_base="http://s3-us-west-2.amazonaws.com/10x.spatial-slides/gpr"
-    wget -O "${spatial_dir}/${record.slide}.gpr" "\${url_base}/${serial_prefix}/${record.slide}.gpr"
+        url_base="http://s3-us-west-2.amazonaws.com/10x.spatial-slides/gpr"
+        wget -O "${spatial_dir}/${record.slide}.gpr" "\${url_base}/${serial_prefix}/${record.slide}.gpr"
+    fi
     """
 }
 
