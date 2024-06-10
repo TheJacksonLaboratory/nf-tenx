@@ -65,7 +65,7 @@ process SPACERANGER_COUNT {
     spatial_dir = "${record.tool_pubdir}/spatial"
 
     visium_hd_prefixes = ["H1", "SJ", "14072023", "14082023", "26062023", "RD", "UN"]
-    is_visium_hd = visium_hd_prefixes.collect { serial.startsWith(it) }.any()
+    is_visium_hd = visium_hd_prefixes.collect { serial_prefix.startsWith(it) }.any()
     """
     spaceranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
