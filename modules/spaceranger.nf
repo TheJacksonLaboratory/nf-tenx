@@ -66,6 +66,7 @@ process SPACERANGER_COUNT {
 
     visium_hd_prefixes = ["H1", "SJ", "14072023", "14082023", "26062023", "RD", "UN"]
     is_visium_hd = visium_hd_prefixes.collect { serial_prefix.startsWith(it) }.any()
+    is_spaceranger3 = record.tool_version[0].toInteger() >= 3
     """
     spaceranger count $main_options --localcores=$task.cpus --localmem=$localmem
 
@@ -99,6 +100,9 @@ process SPACERANGER_COUNT {
         url_base="http://s3-us-west-2.amazonaws.com/10x.spatial-slides/gpr"
         wget -O "${spatial_dir}/${record.slide}.gpr" "\${url_base}/${serial_prefix}/${record.slide}.gpr"
     fi
+
+    if [[ ${is_spaceranger3} ]]; then
+        find ${record.output_id}/SPATIAL_RNA_COUNTER/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
     """
 }
 
