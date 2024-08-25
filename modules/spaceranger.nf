@@ -103,6 +103,7 @@ process SPACERANGER_COUNT {
 
     if [[ ${is_spaceranger3} ]]; then
         find ${record.output_id}/SPATIAL_RNA_COUNTER/ -type f -name "metrics_summary_json.json" -exec mv {} ${record.tool_pubdir}/summary.json \\;
+    fi
     """
 }
 
