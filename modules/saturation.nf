@@ -9,6 +9,8 @@ process SEQUENCING_SATURATION {
     publishDir "${params.pubdir}/${record.output_id}/${record.tool}", pattern: "sequencing_saturation.csv", mode: "copy"
     label "high_mem"
 
+    time { (record.n_reads / 600000000).round(2) * 1.hour * params.time_scale_factor }
+
     container "library://singlecell/python:3.8"
 
     input:
