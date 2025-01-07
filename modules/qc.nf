@@ -14,7 +14,7 @@ process FASTQC {
 
     def mem_Int_extract( String max_mem ) {
         return max_mem.replaceAll("[^0-9]", "")}
-    memory "${ Math.min(mem_Int_extract(params.max_memory),(record.n_reads / 50000000).round(0) * 4) }GB" // takes the smallest of the 2 between the max memory set in the config params versus the scaled memory calculation based on read counts
+    memory "${ Math.min(${mem_Int_extract(params.max_memory)},(record.n_reads / 50000000).round(0) * 4) }GB" // takes the smallest of the 2 between the max memory set in the config params versus the scaled memory calculation based on read counts
 
     container "library://singlecell/fastqc:0.11.9"
 
