@@ -12,7 +12,7 @@ process FASTQC {
     time { (record.n_reads / 300000000).round(2) * 4.hour * params.time_scale_factor }
     cpus 16
 
-    def mem_extract = params.max_memory.toString.replaceAll("[^0-9]", "")
+    def mem_extract = params.max_memory.toString().replaceAll("[^0-9]", "")
     def int_max_mem = mem_extract.toInteger()
     memory "${ Math.min(int_max_mem,(record.n_reads / 50000000).round(0).toInteger() * 4) }GB" // takes the smallest of the 2 between the max memory set in the config params versus the scaled memory calculation based on read counts
 
