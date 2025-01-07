@@ -12,8 +12,9 @@ process FASTQC {
     time { (record.n_reads / 300000000).round(2) * 4.hour * params.time_scale_factor }
     cpus 16
 
-    mem_Int_extract = params.max_memory.replaceAll("[^0-9]", "")
-    memory "${ Math.min(mem_Int_extract,(record.n_reads / 50000000).round(0) * 4) }GB" // takes the smallest of the 2 between the max memory set in the config params versus the scaled memory calculation based on read counts
+    mem_extract = params.max_memory.replaceAll("[^0-9]", "")
+    int_max_mem = mem_extract.toInteger()
+    memory "${ Math.min(int_max_mem,(record.n_reads / 50000000).round(0) * 4) }GB" // takes the smallest of the 2 between the max memory set in the config params versus the scaled memory calculation based on read counts
 
     container "library://singlecell/fastqc:0.11.9"
 
