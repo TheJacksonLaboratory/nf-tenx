@@ -101,7 +101,7 @@ process CELLRANGER_COUNT {
     tag "$record.output_id"
     label "tenx_genomics_count"
 
-    module "/sc/service/tools/modules/10x-genomics/${record.tool}/${record.tool_version}"
+    module "${record.tool}/${record.tool_version}"
 
     // cpus determined by profile
     // memory determined by profile
