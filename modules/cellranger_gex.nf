@@ -101,8 +101,8 @@ process CELLRANGER_COUNT {
     tag "$record.output_id"
     label "tenx_genomics_count"
     
-    module "$record.tool/$record.tool_version"
-
+    //module "$record.tool/$record.tool_version"
+    module "cellranger/7.0.0" 
     // cpus determined by profile
     // memory determined by profile
     time { (record.n_reads / 300000000).round(2) * 8.hour * params.time_scale_factor }
