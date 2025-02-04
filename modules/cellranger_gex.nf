@@ -100,7 +100,7 @@ process CELLRANGER_COUNT {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
     label "tenx_genomics_count"
-
+    beforeScript = 'module use /sc/service/tools/modules/10x-genomics/'
     module "${record.tool}/${record.tool_version}"
 
     // cpus determined by profile
