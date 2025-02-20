@@ -26,8 +26,8 @@ process CELLRANGER_ARC_COUNT {
     // memory determined by profile
     // n_reads here counts both ATAC + GEX, so scale down the factor here.
     time { (record.n_reads / 300000000).round(2) * 6.hour * params.time_scale_factor }
-
-    container "library://singlecell/${record.tool}:${record.tool_version}"
+    module { "${record.tool}/${record.tool_version}" }
+    //container "library://singlecell/${record.tool}:${record.tool_version}"
 
     input:
       val record
