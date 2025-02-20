@@ -47,8 +47,8 @@ process SPACERANGER_COUNT {
     // cpus determined by profile
     // memory determined by profile
     time { (record.n_reads / 300000000).round(2) * 8.hour * params.time_scale_factor }
-
-    container "library://singlecell/${record.tool}:${record.tool_version}"
+    module { "${record.tool}/${record.tool_version}" }
+    //container "library://singlecell/${record.tool}:${record.tool_version}"
 
     input:
       val record
