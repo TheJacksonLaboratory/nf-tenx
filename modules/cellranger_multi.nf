@@ -46,8 +46,8 @@ process CELLRANGER_MULTI {
     publishDir "${params.pubdir}/${record.output_id}", pattern: "${record.tool_pubdir}/*", mode: "copy"
     tag "$record.output_id"
     label "tenx_genomics_count"
-
-    container "library://singlecell/${record.tool}:${record.tool_version}"
+    module { "${record.tool}/${record.tool_version}" }
+    //container "library://singlecell/${record.tool}:${record.tool_version}"
 
     time { (record.n_reads / 300000000).round(2) * 8.hour * params.time_scale_factor }
 
