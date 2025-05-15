@@ -46,11 +46,11 @@ def construct_library_csv_content(record) {
 
 
 def construct_cellplex_library_csv_content(record) {
-  major_version = rec.tool_version[0].toInteger()
+  major_version = record.tool_version[0].toInteger()
   if (major_version >= 9) {
-    bam_row = "create-bam,${!rec.no_bam}"
+    bam_row = "create-bam,${!record.no_bam}"
   } else {
-    bam_row = "no-bam,${rec.no_bam ?: ''}"
+    bam_row = "no-bam,${record.no_bam ?: ''}"
   }
 
   rows = [
@@ -82,11 +82,11 @@ def construct_cellplex_library_csv_content(record) {
 
 
 def construct_flex_library_csv_content(record) {
-  major_version = rec.tool_version[0].toInteger()
+  major_version = record.tool_version[0].toInteger()
   if (major_version >= 9) {
-    bam_row = "create-bam,${!rec.no_bam}"
+    bam_row = "create-bam,${!record.no_bam}"
   } else {
-    bam_row = "no-bam,${rec.no_bam ?: ''}"
+    bam_row = "no-bam,${record.no_bam ?: ''}"
   }
 
   probeset = file("${params.probe_dir}/${record.probe_set}", checkIfExists: true)
