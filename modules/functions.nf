@@ -46,11 +46,19 @@ def construct_library_csv_content(record) {
 
 
 def construct_cellplex_library_csv_content(record) {
+  major_version = record.tool_version[0].toInteger()
+  if (major_version >= 9) {
+    bam_row = "create-bam,${!record.no_bam}"
+  } else {
+    bam_row = "no-bam,${record.no_bam ?: ''}"
+  }
+
   rows = [
     "[gene-expression]",
     "reference,${record.reference_path}",
     "expect-cells,${record.n_cells}",
     "include-introns,${record.is_nuclei}",
+    bam_row,
     "[libraries]", 
     "fastq_id,fastqs,feature_types"
   ]
@@ -74,12 +82,19 @@ def construct_cellplex_library_csv_content(record) {
 
 
 def construct_flex_library_csv_content(record) {
+  major_version = record.tool_version[0].toInteger()
+  if (major_version >= 9) {
+    bam_row = "create-bam,${!record.no_bam}"
+  } else {
+    bam_row = "no-bam,${record.no_bam ?: ''}"
+  }
+
   probeset = file("${params.probe_dir}/${record.probe_set}", checkIfExists: true)
   rows = [
     "[gene-expression]",
     "reference,${record.reference_path}",
     "probe-set,${probeset.toString()}",
-    "no-bam,${record.no_bam ?: ''}",
+    bam_row,
     "[libraries]", 
     "fastq_id,fastqs,feature_types"
   ]
