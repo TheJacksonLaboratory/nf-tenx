@@ -16,8 +16,6 @@ def construct_vis_cli_options(record) {
     options["--transcriptome"] = record.reference_path
 
     options["--image"] = record.image
-    options["--slide"] = record.slide
-    options["--area"] = record.area
     options["--description"] = record.sample_name
 
     if (!record.get("probe_set", "").isEmpty()) {
@@ -33,7 +31,23 @@ def construct_vis_cli_options(record) {
 
     major_version = record.tool_version[0].toInteger()
     if ((record.no_bam) && (major_version < 3)) { options["--no-bam"] = null }
-    if ((major_version >= 3)) { options["--create-bam"] = record.no_bam ? false : true }
+    if ((major_version >= 3)) { 
+        options["--create-bam"] = record.no_bam ? false : true
+    } else {
+        options["--slide"] = record.slide
+        options["--area"] = record.area
+    }
+    if ((major_version >= 4)) {
+        // if record["segment"] = true or false, pass that to --nucleus-segmentation
+        //      if not specified, default to true
+        do_segment = record.segment ?: true
+        if (do_segment) {
+            options["--nucleus-segmentation"] = do_segment
+            // if record["segment_exp_dist"] = NUM, pass that to --nucleus-expansion-distance-micron
+            //      if not specified, default to 20
+            options["--nucleus-expansion-distance-micron"] = record.segment_exp_dist ?: 20
+        }
+    }
 
     return(join_map_items(options))
 }
