@@ -410,7 +410,8 @@ class VISCountChecker(AssayChecker):
         for key in (
             "slide", "area", 
             "cyta_image", "dark_image", "color_image", "manual_alignment",
-            "slide_file", "requires_rotation", "roi_json", "raw_image"
+            "slide_file", "requires_rotation", "roi_json", "raw_image",
+            "segment", "segment_exp_dist"
         ):
             self.allowed_fields.add(key)
 
