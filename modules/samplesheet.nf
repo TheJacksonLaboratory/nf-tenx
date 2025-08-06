@@ -31,7 +31,7 @@ def collect_fastqs(LinkedHashMap record) {
       for(lane in lanes) {
         file(fqp).eachFile {
 
-          fastq -> if(fastq =~ /${lib}.*L${lane}.*fastq.*/) {
+          fastq -> if(fastq =~ /${lib}_.*_L${lane}_.*fastq.*/) {
             if (fastq.isHidden()) { return }
             if (!(fastq in fastqs)) { fastqs.add(fastq.toString()) }
 
