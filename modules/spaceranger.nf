@@ -126,7 +126,8 @@ process IMAGE_PROCESS {
     tag "$record.output_id"
     label "tenx_genomics_count"
 
-    container "library://singlecell/${record.tool}:${record.tool_version}"
+    module { "${record.tool}/${record.tool_version}" }
+    ///container "library://singlecell/${record.tool}:${record.tool_version}"
 
     input:
       val(record)
