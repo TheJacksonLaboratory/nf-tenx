@@ -7,8 +7,9 @@ vim: syntax=groovy
 include { construct_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
 
 def intronic_options(record, opts) {
-    major_version = record.tool_version[0].toInteger()
-
+    versionParts = record.tool_version.tokenize('.')
+    major_version = versionParts[0].toInteger()
+    
     if (record.is_nuclei == true)  {
         switch (major_version) {
             case { it >= 7 }:
@@ -48,7 +49,8 @@ def construct_gex_cli_options(record) {
 
     // no bam
     // --no-bam evaluates to true is present at all
-    major_version = record.tool_version[0].toInteger()
+    versionParts = record.tool_version.tokenize('.')
+    major_version = versionParts[0].toInteger()
     if ((record.no_bam) && (major_version >= 5) && (major_version < 8)) {
         options["--no-bam"] = null
     }

@@ -46,7 +46,9 @@ def construct_library_csv_content(record) {
 
 
 def construct_cellplex_library_csv_content(record) {
-  major_version = record.tool_version[0].toInteger()
+  versionParts = record.tool_version.tokenize('.')
+  major_version = versionParts[0].toInteger()
+  
   if (major_version >= 9) {
     bam_row = "create-bam,${!record.no_bam}"
   } else {
