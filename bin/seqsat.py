@@ -98,7 +98,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    versionParts = args.software_version.tokenized('.')
+    versionParts = args.software_version.split('.')
     if (args.software == "cellranger") and (versionParts[0] in "12"):
         seqsat = compute_legacy(
             args.molecule_info_path, args.filtered_matrix_path
