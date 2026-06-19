@@ -6,6 +6,7 @@ import logging
 import argparse
 from pathlib import Path
 from string import ascii_letters
+from dataclasses import dataclass, field as dcfield, asdict
 
 import yaml
 from yaml import load, dump
@@ -41,6 +42,15 @@ def print_error(record_id, error, context="Line", context_str=""):
     sys.exit(1)
 
 
+@dataclass(frozen=True)
+class SampleSheetField:
+    key: str
+    on_filesystem: bool = dcfield(default=False)
+    required: bool = dcfield(default=False)
+    disallowed: bool = dcfield(default=False)
+    is_list: bool = dcfield(default=False)
+
+
 class AssayChecker:
     supported_tools = {
         "cellranger": ["count", "vdj", "multi", "aggr"],
@@ -66,25 +76,26 @@ class AssayChecker:
 
         self.allowed_library_types = library_types
 
-        self.required_fields = {
-            "libraries",
-            "library_types",
-            "fastq_paths",
-            "tool",
-            "tool_version",
-            "command",
-            "sample_name",
-            "reference_path",
-        }
-
-        self.allowed_fields = {
-            "use_undetermined", "lanes",
-            "n_cells", 
-            "is_nuclei", 
-            "design",
-            "probe_set", 
-            "tags", 
-            "no_bam", 
+        # A field's `required` flag captures whether it must be present; optional
+        # fields are simply those with required=False. Each field still carries its
+        # own on_filesystem/is_list metadata, validated uniformly in check().
+        self.fields = {
+            SampleSheetField("libraries", required=True, is_list=True),
+            SampleSheetField("library_types", required=True, is_list=True),
+            SampleSheetField("fastq_paths", required=True, on_filesystem=True, is_list=True),
+            SampleSheetField("tool", required=True),
+            SampleSheetField("tool_version", required=True),
+            SampleSheetField("command", required=True),
+            SampleSheetField("sample_name", required=True),
+            SampleSheetField("reference_path", required=True, on_filesystem=True),
+            SampleSheetField("use_undetermined"),
+            SampleSheetField("lanes"),
+            SampleSheetField("n_cells"),
+            SampleSheetField("is_nuclei"),
+            SampleSheetField("design"),
+            SampleSheetField("probe_set"),  # path relative to assets, checked separately
+            SampleSheetField("tags"),
+            SampleSheetField("no_bam"),
         }
 
     def check_mutually_exclusive_fields(self, record_id, record, keys1, keys2):
@@ -93,21 +104,31 @@ class AssayChecker:
         if has_keys1 and has_keys2:
             print_error(record_id, f"Keys '{','.join(keys1)}' and '{','.join(keys2)}' are mutually exclusive.")
 
-    def check_needed_field(self, record_id, record, key, is_file=False):
+    def check_field(self, record_id, record, key, required=False, disallowed=False, on_filesystem=False, is_list=False):
         field = record.get(key, None)
-        if not field:
+
+        # if field is required but absent
+        if (not field) and required:
             print_error(record_id, f"Specified assay '{'-'.join(record.get('library_types'))}' must have key '{key}'!")
-        if is_file and (not Path(field).exists()):
-            print_error(record_id, f"Specified file '{key}'='{field}' does not exist!")
-        return field
 
-
-    def check_unneeded_field(self, record_id, record, key, is_file=False):
-        field = record.get(key, None)
-        if field:
+        # if field is present but disallowed
+        if field and disallowed:
             print_error(record_id, f"Specified assay '{'-'.join(record.get('library_types'))}' cannot have key '{key}'!")
+
+        if is_list and field is not None and not isinstance(field, list):
+            print_error(record_id, f"Specified field '{key}' must be a list!")
+
+        if field and on_filesystem:
+            paths = field if isinstance(field, list) else [field]
+            for f in paths:
+                if not Path(f).exists():
+                    print_error(record_id, f"Specified path '{key}'='{f}' is a filesystem path and does not exist!")
+
+        # will return None if field is absent
         return field
 
+    def valid_keys(self):
+        return {f.key for f in self.fields}
 
     def check_records(self, records):
         for k, record in enumerate(records, start=1):
@@ -120,17 +141,16 @@ class AssayChecker:
     
 
     def check(self, record_id, record):
-        # fields, subclasses modify required fields as needed
-        missing = self.required_fields - record.keys()
-        if missing:
-            print_error(
-                record_id, 
-                f"Record missing required fields for assay {self.assay_type}: {missing}"
-            )
+        # validate every declared field by its own metadata; subclasses modify
+        # self.fields as needed. Optional fields (required=False) only error if
+        # present and malformed.
+        for field in self.fields:
+            self.check_field(record_id, record, **asdict(field))
 
         # check additional fields.
-        # this union is done here so that we can modify required fields in subclass inits
-        unknown_fields = record.keys() - self.required_fields.union(self.allowed_fields)
+        # valid_keys is computed here so that subclass inits can modify the field sets
+        valid_keys = self.valid_keys()
+        unknown_fields = record.keys() - valid_keys
         if unknown_fields:
             print_error(
                 record_id,
@@ -190,7 +210,6 @@ class AssayChecker:
             )
 
         self.check_fastqs_exist(record_id, record)
-        self.check_reference_exists(record_id, record)
 
 
     def check_tags_exist(self, record_id, record):
@@ -225,14 +244,8 @@ class AssayChecker:
                 )
             )
 
-    def check_reference_exists(self, record_id, record):
-        ref_path = record.get("reference_path", None)
-        if ref_path is None:
-            return
-        self.check_needed_field(record_id, record, "reference_path", is_file=True)
-
     def check_valid_design(self, record_id, record):
-        design = self.check_needed_field(record_id, record, "design")
+        design = self.check_field(record_id, record, "design", required=True)
 
         for i, (bcs, data) in enumerate(design.items()):
             if '.' in bcs:
@@ -425,28 +438,31 @@ class VISCountChecker(AssayChecker):
         super().__init__(
             "Visium", "spaceranger", "count", ["Spatial Gene Expression", "CytAssist Gene Expression"]
         )
-        for key in ("image", ):
-            self.required_fields.add(key)
-        for key in (
-            "slide", "area", 
-            "cyta_image", "dark_image", "color_image", "manual_alignment",
-            "slide_file", "requires_rotation", "roi_json", "raw_image",
-            "segment", "segment_exp_dist"
-        ):
-            self.allowed_fields.add(key)
+
+        self.fields.update({
+            SampleSheetField("image", required=True, on_filesystem=True),
+            SampleSheetField("slide"),
+            SampleSheetField("area"),
+            SampleSheetField("cyta_image", on_filesystem=True),
+            SampleSheetField("dark_image", on_filesystem=True),
+            SampleSheetField("color_image", on_filesystem=True),
+            SampleSheetField("manual_alignment", on_filesystem=True),
+            SampleSheetField("slide_file", on_filesystem=True),
+            SampleSheetField("roi_json", on_filesystem=True),
+            SampleSheetField("raw_image", on_filesystem=True),
+            SampleSheetField("requires_rotation"),
+            SampleSheetField("segment"),
+            SampleSheetField("segment_exp_dist"),
+        })
 
     def additional_checks(self, record_id, record):
-        image_path = self.check_needed_field(record_id, record, "image", is_file=True)
-        self.check_needed_field(record_id, record, "slide")
-        self.check_needed_field(record_id, record, "area")
-
-        # CytAssist
-        cytaimage_path = record.get("cyta_image", None)
+        # base check() already validates image/slide/area presence and the
+        # filesystem fields; here we add the conditional CytAssist rule.
         is_cyta = all(["CytAssist" in lib_type for lib_type in record.get("library_types")])
-        if is_cyta:
-            self.check_needed_field(record_id, record, "cyta_image", is_file=True)
-        else:
-            self.check_unneeded_field(record_id, record, "cyta_image")
+        self.check_field(
+            record_id, record, "cyta_image",
+            on_filesystem=True, required=is_cyta, disallowed=(not is_cyta),
+        )
 
         # FFPE
         self.check_for_probeset(record_id, record)
@@ -460,8 +476,9 @@ class CITESeqChecker(AssayChecker):
             None,
             ["TotalSeq-A", "TotalSeq-B", "TotalSeq-C", "CMO", "LMO"],
         )
-        self.required_fields.remove("reference_path")
-        self.required_fields.add("tags")
+        # CITEseq has no reference; tags become required (overriding the optional base entry)
+        self.fields = {f for f in self.fields if f.key not in ("reference_path", "tags")}
+        self.fields.add(SampleSheetField("tags", required=True))
 
     def additional_checks(self, record_id, record):
         self.check_tags_exist(record_id, record)
