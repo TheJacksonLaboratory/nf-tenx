@@ -321,9 +321,29 @@ class GEXMultiChecker(AssayChecker):
         )
 
     def additional_checks(self, record_id, record):
-        # Differentiate between cellplex and flex here:
+        is_flex, is_ocm, is_cellplex = False, False, False
+        OBS = ["OB1", "OB2", "OB3", "OB4", "OB1|OB2", "OB3|OB4"]
+        # Differentiate between cellplex, ocm, and flex here:
         types = ["Multiplexing Capture", "LMO", "TotalSeq-A", "TotalSeq-B", "TotalSeq-C"]
         if set(types) & set(record["library_types"]) == set():
+            # either flex or ocm
+            if any([obs in record["design"] for obs in OBS]):
+                is_ocm = True
+            else:
+                is_flex = True
+        else:
+            is_cellplex = True
+
+        if not any([is_flex, is_ocm, is_cellplex]):
+            print_error(
+                record_id,
+                f"Record must specify one of the following library type combinations: "
+                f"1) 'Multiplexing Capture', 'LMO', 'TotalSeq-A', 'TotalSeq-B', or 'TotalSeq-C' "
+                f"2) 'Gene Expression' and have a design with one of OB1, OB2, OB3, OB4, OB1|OB2, or OB3|OB4 "
+                f"3) 'Gene Expression' and have a probe set"
+            )
+
+        if is_flex:
             # We must have a probeset then
             extra_error = (
                 f"Record {record_id} must either specify a 'probe_set' or "
