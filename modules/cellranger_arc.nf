@@ -13,6 +13,16 @@ def construct_arc_cli_options(record) {
     options["--reference"] = record.reference_path
     options["--libraries"] = "${record.output_id}.csv"
     options["--description"] = record.sample_name
+
+    #if (record.disable-cell-annotation) { options["--disable-cell-annotation"] = null }
+
+    versionParts = record.tool_version.tokenize('.')
+    major_version = record.tool_version[0].toInteger()
+    minor_version = record.tool_version[1].toInteger()
+
+    if ((record.no_bam) && (major_version <= 2) && (minor_version < 1)) { options["--no-bam"] = null }
+    if ((major_version >= 2) && (minor_version >= 1)) { options["--create-bam"] = record.create-bam ? true : false }
+
     return(join_map_items(options))
 }
 
