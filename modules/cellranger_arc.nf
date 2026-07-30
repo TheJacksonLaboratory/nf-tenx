@@ -14,7 +14,7 @@ def construct_arc_cli_options(record) {
     options["--libraries"] = "${record.output_id}.csv"
     options["--description"] = record.sample_name
 
-    #if (record.disable-cell-annotation) { options["--disable-cell-annotation"] = null }
+    //if (record.disable-cell-annotation) { options["--disable-cell-annotation"] = null }
 
     versionParts = record.tool_version.tokenize('.')
     major_version = record.tool_version[0].toInteger()
