@@ -84,7 +84,9 @@ class AssayChecker:
             "design",
             "probe_set", 
             "tags", 
-            "no_bam", 
+            "no_bam",
+            "create_bam",
+            "disable_cell_annotations"
         }
 
     def check_mutually_exclusive_fields(self, record_id, record, keys1, keys2):
