@@ -82,6 +82,42 @@ def construct_cellplex_library_csv_content(record) {
   return(rows.join("\n"))
 }
 
+def construct_ocm_library_csv_content(record) {
+  versionParts = record.tool_version.tokenize('.')
+  major_version = versionParts[0].toInteger()
+  
+  if (major_version >= 9) {
+    bam_row = "create-bam,${!record.no_bam}"
+  } else {
+    bam_row = "no-bam,${record.no_bam ?: ''}"
+  }
+
+  rows = [
+    "[gene-expression]",
+    "reference,${record.reference_path}",
+    "expect-cells,${record.n_cells}",
+    "include-introns,${record.is_nuclei}",
+    bam_row,
+    "[libraries]", 
+    "fastq_id,fastqs,feature_types"
+  ]
+
+  nlibs = record.libraries.size()
+  nfqps = record.fastq_paths.size()
+  ntypes = record.library_types.size()
+  if ([nlibs, nfqps, ntypes].toSet().size() > 1) {
+    throw new Exception("Currently can't do unequal #libs, #fastq paths, #types")
+  }
+  for (i in 0..<nlibs) {
+    rows.add("${record.prefixes[i]},${record.fastq_paths[i]},${record.library_types[i]}")
+  }
+
+  rows << "[samples]"
+  rows << "sample_id,ocm_barcode_ids,description"
+  record.design.each { obid, info -> rows.add("${info.name},${obid},${info.description}") }
+
+  return(rows.join("\n"))
+}
 
 def construct_flex_library_csv_content(record) {
   major_version = record.tool_version[0].toInteger()

@@ -4,7 +4,7 @@ vim: syntax=groovy
 -*- mode: groovy;-*-
 */
 
-include { construct_cellplex_library_csv_content; construct_flex_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
+include { construct_cellplex_library_csv_content; construct_flex_library_csv_content; construct_ocm_library_csv_content; create_feature_reference; join_map_items } from './functions.nf'
 
 
 def construct_multi_cli_options(record) {
@@ -16,6 +16,8 @@ def construct_multi_cli_options(record) {
 
     if ("Multiplexing Capture" in record.library_types) {
         multi_content = construct_cellplex_library_csv_content(record)
+    } else if (["OB1", "OB2", "OB3", "OB4", "OB1|OB2", "OB3|OB4"].any { element -> element in record.design }) {
+        multi_content = construct_ocm_library_csv_content(record)
     } else {
         multi_content = construct_flex_library_csv_content(record)
     }
