@@ -6,7 +6,7 @@ import logging
 import argparse
 from pathlib import Path
 from string import ascii_letters
-from dataclasses import dataclass, field as dcfield
+from dataclasses import dataclass, field as dcfield, asdict
 
 import yaml
 from yaml import load, dump
