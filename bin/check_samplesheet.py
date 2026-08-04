@@ -6,6 +6,7 @@ import logging
 import argparse
 from pathlib import Path
 from string import ascii_letters
+from dataclasses import dataclass, field as dcfield
 
 import yaml
 from yaml import load, dump
@@ -41,6 +42,14 @@ def print_error(record_id, error, context="Line", context_str=""):
     sys.exit(1)
 
 
+@dataclass(frozen=True)
+class SampleSheetField:
+    key: str
+    on_filesystem: bool = dcfield(default=False)
+    required: bool = dcfield(default=False)
+    disallowed: bool = dcfield(default=False)
+    is_list: bool = dcfield(default=False)
+
 class AssayChecker:
     supported_tools = {
         "cellranger": ["count", "vdj", "multi", "aggr"],
@@ -66,27 +75,27 @@ class AssayChecker:
 
         self.allowed_library_types = library_types
 
-        self.required_fields = {
-            "libraries",
-            "library_types",
-            "fastq_paths",
-            "tool",
-            "tool_version",
-            "command",
-            "sample_name",
-            "reference_path",
-        }
-
-        self.allowed_fields = {
-            "use_undetermined", "lanes",
-            "n_cells", 
-            "is_nuclei", 
-            "design",
-            "probe_set", 
-            "tags", 
-            "no_bam",
-            "create_bam",
-            "disable_cell_annotations"
+        # A field's `required` flag captures whether it must be present; optional
+        # fields are simply those with required=False. Each field still carries its
+        # own on_filesystem/is_list metadata, validated uniformly in check().
+        self.fields = {
+            SampleSheetField("libraries", required=True, is_list=True),
+            SampleSheetField("library_types", required=True, is_list=True),
+            SampleSheetField("fastq_paths", required=True, on_filesystem=True, is_list=True),
+            SampleSheetField("tool", required=True),
+            SampleSheetField("tool_version", required=True),
+            SampleSheetField("command", required=True),
+            SampleSheetField("sample_name", required=True),
+            SampleSheetField("reference_path", required=True, on_filesystem=True),
+            SampleSheetField("use_undetermined"),
+            SampleSheetField("lanes"),
+            SampleSheetField("n_cells"),
+            SampleSheetField("is_nuclei"),
+            SampleSheetField("design"),
+            SampleSheetField("probe_set"),  # path relative to assets, checked separately
+            SampleSheetField("tags"),
+            SampleSheetField("no_bam"),
+            SampleSheetField("disable_cell_annotation")
         }
 
     def check_mutually_exclusive_fields(self, record_id, record, keys1, keys2):
