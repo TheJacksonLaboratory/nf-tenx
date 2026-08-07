@@ -47,8 +47,9 @@ def construct_arc_cli_options(record) {
     throw new Exception("the option 'create_bam' is oly available for cellranger-arc >= 2.1")
   }
 
-  if (record.create_bam) {
-    options["--create-bam"] = "true"
+  // Again, check explicitly for null. cellranger requires an explicit true or false to be passed, so it's not like the other boolean flags you can give it
+  if (record.create_bam != null) {
+    options["--create-bam"] = record.create_bam
   }
 
   if (version_is_ge_2_1 && record.no_bam != null) {
