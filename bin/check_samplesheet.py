@@ -96,6 +96,8 @@ class AssayChecker:
             SampleSheetField("probe_set"),  # path relative to assets, checked separately
             SampleSheetField("tags"),
             SampleSheetField("no_bam"),
+            SampleSheetField("disable_cell_annotation"),
+            SampleSheetField("create_bam")
         }
 
     def check_mutually_exclusive_fields(self, record_id, record, keys1, keys2):
