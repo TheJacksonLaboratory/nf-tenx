@@ -48,7 +48,7 @@ def construct_arc_cli_options(record) {
   }
 
   if (record.create_bam) {
-    options["--create-bam"] = ""
+    options["--create-bam"] = "true"
   }
 
   if (version_is_ge_2_1 && record.no_bam != null) {
